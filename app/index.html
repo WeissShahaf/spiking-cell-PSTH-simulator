@@ -1,0 +1,2122 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Spike test lab (simulator)</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap">
+<style>
+:root{
+  --bg:#F7F5F0; --surface:#FFFFFF; --surface-2:#F0EEE7; --ink:#1B2A38; --text:#3A4650; --muted:#62696E;
+  --line:#E3E1D8; --accent:#2E7D74; --accent-ink:#FFFFFF; --accent-soft:#E6F1EE; --accent-strong:#22655D;
+  --sim:#8A5A12; --sim-soft:#F6E9CF; --no:#5E6870; --no-soft:#ECEBE6; --flag:#9A3B2E; --flag-soft:#F5E1DC; --rflag:#C62828;
+  --base-win:rgba(90,110,130,.10); --resp-win:rgba(46,125,116,.13); --spike:#1B2A38; --spike-resp:#2E7D74; --truth:#B0483A;
+  --m1:#B97F00; --m2:#0072B2; --m3:#00805D; --m4:#B5578C; --m5:#C45500; --m6:#2A86BF; --m7:#7A6A00; --m8:#555555; --m9:#6A3D9A; --m10:#8C564B; --m11:#C2185B; --m12:#1A1A80; --m13:#005F5F; --m14:#7B3F00;
+  --r:10px; --gap:16px;
+  --f-display:'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --f-body:'IBM Plex Sans', 'Segoe UI', Arial, sans-serif;
+  --f-mono:'IBM Plex Mono', ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#11181E; --surface:#18222A; --surface-2:#1E2A33; --ink:#EDF1F2; --text:#C8D0D5; --muted:#8C98A1;
+    --line:#2A3741; --accent:#5DB7AA; --accent-ink:#0D1A18; --accent-soft:#1D3835; --accent-strong:#6CC7BA;
+    --sim:#E2B866; --sim-soft:#3A2F1A; --no:#9AA5AD; --no-soft:#24303A; --flag:#E9907F; --flag-soft:#3B2420; --rflag:#FF6B5E;
+    --base-win:rgba(150,170,190,.10); --resp-win:rgba(93,183,170,.16); --spike:#DCE3E7; --spike-resp:#6CC7BA; --truth:#F08C78;
+    --m7:#D6C44A; --m8:#B0B0B0; --m9:#B79BE0; --m10:#C9A08F; --m11:#F06292; --m12:#9AA8FF; --m13:#4FC9C9; --m14:#D9A066; --m1:#E69F00; --m3:#1FBF8F; --m4:#DA8EB9; --m5:#EE7733; --m6:#56B4E9; --m2:#4DA3E6;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#11181E; --surface:#18222A; --surface-2:#1E2A33; --ink:#EDF1F2; --text:#C8D0D5; --muted:#8C98A1;
+  --line:#2A3741; --accent:#5DB7AA; --accent-ink:#0D1A18; --accent-soft:#1D3835; --accent-strong:#6CC7BA;
+  --sim:#E2B866; --sim-soft:#3A2F1A; --no:#9AA5AD; --no-soft:#24303A; --flag:#E9907F; --flag-soft:#3B2420; --rflag:#FF6B5E;
+  --base-win:rgba(150,170,190,.10); --resp-win:rgba(93,183,170,.16); --spike:#DCE3E7; --spike-resp:#6CC7BA; --truth:#F08C78;
+  --m7:#D6C44A; --m8:#B0B0B0; --m9:#B79BE0; --m10:#C9A08F; --m11:#F06292; --m12:#9AA8FF; --m13:#4FC9C9; --m14:#D9A066; --m1:#E69F00; --m3:#1FBF8F; --m4:#DA8EB9; --m5:#EE7733; --m6:#56B4E9; --m2:#4DA3E6;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg); color:var(--text); font-family:var(--f-body); font-size:15px; line-height:1.5; margin:0}
+body.big{font-size:18px}
+.wrap{max-width:1360px; margin:0 auto; padding-inline:16px; padding-block:20px 48px; display:flex; flex-direction:column; gap:18px}
+header.top{display:flex; flex-wrap:wrap; gap:12px 20px; align-items:flex-end; justify-content:space-between}
+.brand{display:flex; flex-direction:column; gap:4px; min-width:0}
+.brand h1{font-family:var(--f-display); font-weight:700; font-size:2.05em; line-height:1.1; color:var(--ink); margin:0; text-wrap:balance}
+.brand p{margin:0; color:var(--muted); max-width:70ch}
+.pill{display:inline-flex; align-items:center; gap:6px; font-size:.8em; font-weight:600; letter-spacing:.04em; text-transform:uppercase; padding:3px 10px; border-radius:999px; white-space:nowrap}
+.pill.sim{background:var(--sim-soft); color:var(--sim)}
+.pill.status{background:var(--surface-2); color:var(--text)}
+.pill.status.flag{background:var(--flag-soft); color:var(--flag)}
+.pill.status.cur{background:var(--accent-soft); color:var(--accent-strong)}
+.toolbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+button,.btn{font:inherit; font-size:.9em; font-weight:500; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:6px 12px; cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,[role=tab]:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+button.primary{background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:600}
+button[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent); color:var(--ink)}
+nav.tabs{display:flex; gap:4px; border-bottom:1px solid var(--line); overflow-x:auto}
+nav.tabs [role=tab]{border:0; border-bottom:3px solid transparent; border-radius:0; background:none; padding:10px 14px; font-weight:600; color:var(--muted); white-space:nowrap}
+nav.tabs [role=tab][aria-selected="true"]{color:var(--ink); border-bottom-color:var(--accent)}
+nav.tabs .n{font-family:var(--f-mono); font-weight:500; color:var(--muted); margin-right:6px}
+.layout{display:grid; grid-template-columns:320px minmax(0,1fr); gap:var(--gap); align-items:start}
+@media (max-width:860px){ .layout{grid-template-columns:minmax(0,1fr)} }
+aside.controls{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:6px 14px 14px; position:sticky; top:env(safe-area-inset-top,0px); max-height:calc(100vh - 24px); overflow:auto}
+@media (max-width:860px){ aside.controls{position:static; max-height:none} }
+details.grp{border-bottom:1px solid var(--line); padding-block:8px}
+details.grp:last-of-type{border-bottom:0}
+details.grp summary{cursor:pointer; font-weight:600; color:var(--ink); font-size:.92em; letter-spacing:.02em; list-style:none; display:flex; justify-content:space-between}
+details.grp summary::after{content:'+'; color:var(--muted)}
+details.grp[open] summary::after{content:'\2212'}
+.ctl{display:grid; grid-template-columns:1fr auto; gap:2px 8px; margin-top:10px; align-items:center}
+.ctl label{font-size:.86em; color:var(--text)}
+.ctl output{font-family:var(--f-mono); font-size:.82em; color:var(--ink); font-variant-numeric:tabular-nums}
+.ctl input[type=range]{grid-column:1 / -1; width:100%; accent-color:var(--accent)}
+.ctl select{grid-column:1 / -1; font:inherit; font-size:.88em; padding:5px 8px; border-radius:6px; border:1px solid var(--line); background:var(--surface); color:var(--ink)}
+.ctl .hint{grid-column:1 / -1; font-size:.76em; color:var(--muted)}
+.presets{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px}
+.presets button{font-size:.8em; padding:4px 9px}
+main.stack{display:flex; flex-direction:column; gap:var(--gap); min-width:0}
+.kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(128px,1fr)); gap:10px}
+.kpi{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:10px 14px}
+.kpi .k{font-size:.72em; text-transform:uppercase; letter-spacing:.06em; color:var(--muted)}
+.kpi .v{font-family:var(--f-mono); font-size:1.35em; color:var(--ink); font-variant-numeric:tabular-nums; line-height:1.3}
+.kpi .s{font-size:.76em; color:var(--muted)}
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:14px 16px; display:flex; flex-direction:column; gap:8px; min-width:0}
+.panel h2{font-family:var(--f-display); font-size:1.2em; color:var(--ink); margin:0; font-weight:600}
+.panel h3{font-size:.95em; color:var(--ink); margin:0; font-weight:600}
+.panel .cap{font-size:.82em; color:var(--muted); margin:0}
+.chart{width:100%; display:block}
+.row2{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:var(--gap)}
+.methods{display:flex; flex-wrap:wrap; gap:6px}
+.methods button{display:inline-flex; align-items:center; gap:8px; font-size:.86em}
+.methods .dot{width:10px; height:10px; border-radius:50%; display:inline-block; flex:none}
+.verdict{display:flex; align-items:center; gap:14px; padding:14px 18px; border-radius:var(--r); border:1px solid var(--line)}
+.verdict .icon{font-family:var(--f-mono); font-size:1.5em; font-weight:500; width:1.6em; height:1.6em; display:grid; place-items:center; border-radius:50%; flex:none}
+.verdict .t{font-weight:700; font-size:1.12em; color:var(--ink)}
+.verdict .d{font-size:.86em; color:var(--text)}
+.verdict.yes{background:var(--accent-soft); border-color:var(--accent)}
+.verdict.yes .icon{background:var(--accent); color:var(--accent-ink)}
+.verdict.no{background:var(--no-soft)}
+.verdict.no .icon{background:var(--no); color:var(--surface)}
+.verdict.rel{background:var(--sim-soft)}
+.verdict.rel .icon{background:var(--sim); color:var(--surface)}
+.tablewrap{overflow-x:auto}
+table.t{border-collapse:collapse; width:100%; font-size:.88em}
+table.t th{text-align:left; font-size:.78em; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:600; padding:8px 10px; border-bottom:2px solid var(--line); white-space:nowrap; cursor:pointer; user-select:none}
+table.t td{padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top}
+table.t td.num{font-family:var(--f-mono); font-variant-numeric:tabular-nums; white-space:nowrap}
+table.t tr.sel td{background:var(--accent-soft)}
+.tag{font-size:.8em; font-weight:600; padding:2px 8px; border-radius:999px; white-space:nowrap}
+.tag.yes{background:var(--accent-soft); color:var(--accent-strong)}
+.tag.no{background:var(--no-soft); color:var(--no)}
+.tag.rel{background:var(--sim-soft); color:var(--sim)}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.aflag{color:var(--rflag); font-weight:700; margin-left:6px; cursor:help}
+.achecks{margin-top:10px; display:flex; flex-direction:column; gap:8px; font-size:.86em}
+.achecks .ac{display:grid; grid-template-columns:1.4em 1fr; gap:4px 8px; align-items:start}
+.achecks .ac .i{font-weight:700; text-align:center}
+.achecks .ac.bad .i{color:var(--rflag)} .achecks .ac.good .i{color:var(--accent-strong)}
+.achecks .ac .l{font-weight:600; color:var(--ink)} .achecks .ac .m{grid-column:2; color:var(--text); font-family:var(--f-mono); font-size:.92em; overflow-wrap:anywhere} .achecks .ac .w{grid-column:2; color:var(--muted)}
+.note{font-size:.84em; color:var(--muted); max-width:80ch}
+.progress{height:6px; background:var(--surface-2); border-radius:3px; overflow:hidden}
+.progress > div{height:100%; width:0; background:var(--accent); transition:width .15s}
+.checks{display:flex; flex-wrap:wrap; gap:6px 14px; font-size:.88em; margin-top:8px}
+.checks label{display:inline-flex; gap:6px; align-items:center}
+.lawchips{font-size:.8em; margin-top:0}
+.lawchips .aic{font-family:var(--f-mono); color:var(--muted); font-size:.92em}
+footer.foot{font-size:.8em; color:var(--muted); border-top:1px solid var(--line); padding-top:12px; display:flex; flex-direction:column; gap:4px}
+/* ---- layout fixes ---- */
+.presets-label{font-size:.75em; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-top:10px}
+.startfrom{font-family:var(--f-display); font-size:1.1em; color:var(--ink); margin:10px 0 0}
+.presets{margin-top:6px}
+.presets button{min-height:36px}
+details.grp summary{padding-block:10px}
+.kpi .k{font-size:.8em}
+table.t th{font-size:12px}
+.tag{font-size:12px}
+table.t td:first-child{min-width:10ch}
+table.t tbody tr:focus-visible{outline:2px solid var(--accent); outline-offset:-2px}
+a.btn{text-decoration:none; display:inline-flex; align-items:center}
+a.btn.jump{display:none}
+aside.controls{background:linear-gradient(var(--surface) 30%, transparent) center top, linear-gradient(transparent, var(--surface) 70%) center bottom, radial-gradient(farthest-side at 50% 0, rgba(0,0,0,.14), transparent) center top, radial-gradient(farthest-side at 50% 100%, rgba(0,0,0,.14), transparent) center bottom; background-color:var(--surface); background-repeat:no-repeat; background-size:100% 40px, 100% 40px, 100% 12px, 100% 12px; background-attachment:local, local, scroll, scroll}
+@media (min-width:600px) and (max-width:1100px){ .kpis{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media (max-width:860px){
+  .layout main.stack{order:-1}
+  a.btn.jump{display:inline-flex}
+  .ctl input[type=range]{height:28px}
+  aside.controls{background:var(--surface)}
+  .row2{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:600px){
+  table.t .st{display:none}
+  #sec-fa .ctl{flex:1 1 100%; min-width:0!important}
+}
+@media (max-width:420px){
+  .pill{white-space:normal}
+  nav.tabs [role=tab]{padding:10px 8px}
+  .brand h1{font-size:1.8em}
+}
+@media (max-width:360px){ nav.tabs .n{display:none} }
+@media (pointer:coarse){
+  .ctl input[type=range]{height:32px}
+  .checks label{min-height:32px}
+  button, .btn, select{min-height:40px}
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+</style>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="pill sim" id="modePill">Simulated cells · teaching sketch</span></div>
+      <h1>Spike test lab</h1>
+      <p id="introText">Build a hypothetical cell, watch it respond (or not) to a stimulus, then run a set of spike-response tests on it. Every cell here is simulated in your browser; no recorded data is used. The tests are simplified teaching versions.</p>
+    </div>
+    <div class="toolbar">
+      <button id="bigBtn" type="button" aria-pressed="false">Presenter mode</button>
+      <button id="seedBtn" type="button">New random cell</button>
+      <a class="btn jump" href="#settings">Cell settings ↓</a>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button role="tab" id="tab-cell" aria-controls="sec-cell" aria-selected="true" type="button"><span class="n">1</span>Build a cell</button>
+    <button role="tab" id="tab-tests" aria-controls="sec-tests" aria-selected="false" type="button"><span class="n">2</span>Run a test</button>
+    <button role="tab" id="tab-fa" aria-controls="sec-fa" aria-selected="false" type="button"><span class="n">3</span>False alarms</button>
+  </nav>
+
+  <div class="layout">
+    <aside class="controls" aria-label="Cell settings">
+      <h2 class="startfrom" id="settings">Cell settings</h2><div class="presets-label">Start from</div><div class="presets" id="presets" aria-label="Presets"></div>
+      <div id="cellControls"></div>
+    </aside>
+
+    <main class="stack">
+      <!-- 1 CELL -->
+      <section id="sec-cell" role="tabpanel" aria-labelledby="tab-cell" class="stack" style="display:flex;flex-direction:column;gap:16px">
+        <div class="kpis" id="cellKpis"></div>
+        <div class="panel">
+          <h2>Raster</h2>
+          <p class="cap" id="rasterCap"></p>
+          <canvas class="chart" id="raster" height="320" role="img" aria-label="Raster plot: one row per trial, spike times from 2 s before to 3 s after the event"></canvas>
+        </div>
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-end">
+            <div><h2>PSTH</h2><p class="cap"><span id="psthCap">Mean rate across trials ± SEM (shaded). Dashed line: the true rate the cell was simulated from.</span> <span id="psthN"></span></p></div>
+            <div class="ctl" style="margin:0;min-width:200px"><label for="psthBin">Bin width</label><output id="psthBinOut"></output><input type="range" id="psthBin" min="5" max="250" step="5" value="100"></div>
+          </div>
+          <canvas class="chart" id="psth" height="240" role="img" aria-label="PSTH: mean firing rate across trials over time, with SEM band and the true simulated rate"></canvas>
+        </div>
+        <div class="row2">
+          <div class="panel"><h3>Intervals between spikes</h3><p class="cap" id="isiCap"></p><canvas class="chart" id="isiHist" height="220" role="img" aria-label="Histogram of intervals between spikes with the chosen law drawn over it"></canvas></div>
+          <div class="panel"><h3>Spike counts in 1 s windows</h3><p class="cap" id="countCap"></p><div class="checks lawchips" id="countLaws" aria-label="Laws to draw"></div><canvas class="chart" id="countHist" height="240" role="img" aria-label="Histogram of spike counts in 1 s windows with the selected count laws drawn over it"></canvas></div>
+        </div>
+      </section>
+
+      <!-- 2 TESTS -->
+      <section id="sec-tests" role="tabpanel" aria-labelledby="tab-tests" hidden style="display:flex;flex-direction:column;gap:16px">
+        <div class="methods" id="methodChips" role="group" aria-label="Methods"></div>
+        <div class="verdict" id="verdict" aria-live="polite"><div class="icon" id="vIcon"></div><div><div class="t" id="vTitle"></div><div class="d" id="vDetail"></div><div class="achecks" id="vChecks"></div></div></div>
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+            <h2 id="mName"></h2><span class="pill status" id="mStatus"></span>
+          </div>
+          <p id="mBlurb" style="margin:0;max-width:80ch"></p>
+        </div>
+        <div class="kpis" id="testKpis"></div>
+        <div class="row2">
+          <div class="panel"><h3 id="pic1Title"></h3><p class="cap" id="pic1Cap"></p><canvas class="chart" id="pic1" height="260" role="img" aria-label="How the selected test sees this cell"></canvas></div>
+          <div class="panel"><h3 id="pic2Title"></h3><p class="cap" id="pic2Cap"></p><canvas class="chart" id="pic2" height="260" role="img" aria-label="The test's null distribution with the observed value marked"></canvas></div>
+        </div>
+        <div class="panel">
+          <h3>Test settings</h3>
+          <div id="testControls" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:4px 20px"></div>
+        </div>
+        <div class="panel">
+          <h2>All methods on this cell</h2>
+          <p class="cap">Same cell, same windows, each method with its own settings above. Click a row to open that method. Click a column heading to sort.</p>
+          <div class="tablewrap"><table class="t" id="allTable"></table></div>
+        </div>
+        <div class="panel" id="sweepPanel">
+          <h2>Window length: fixed windows vs a window set by the response</h2>
+          <p class="cap" style="max-width:80ch">Same cell, each test re-run with the response window ending at 0.25, 0.5, 1, 2 (the default) and 3 s, and once with a <b>derived</b> window that ends where this cell's response ends: latency + 2 × the latency jitter SD (covers about 98% of trials) + response length (3 × duration for the peak shape, so its tail is inside), rounded up to 0.05 s and kept between 0.25 and 3 s. Shape axis: Cramér–von Mises vs uniform and ZETA use the same end for their timing window (the two-sample shape test keeps its fixed windows). Baseline stays −2 to −0.25 s.</p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center"><button class="primary" id="swRun" type="button">Run window sweep</button><span class="cap" id="swStatus">Not run yet for this cell. Takes a few seconds (6 windows × 14 tests).</span></div>
+          <p class="cap">Lines: fixed windows. Rings: the derived window (dotted line). ✓ in the table = called (same α and BH setting as above). The per-trial count tests and the “T4 or T4-pre” rule have no single p, so they are in the table only.</p>
+          <canvas class="chart" id="swChart" height="300" role="img" aria-label="p value of each test against the response-window length, with the derived window marked"></canvas>
+          <div class="tablewrap"><table class="t" id="swTable"></table></div>
+          <p class="note" id="swNote">Simulated cells only.</p>
+        </div>
+      </section>
+
+      <!-- 3 FALSE ALARMS -->
+      <section id="sec-fa" role="tabpanel" aria-labelledby="tab-fa" hidden style="display:flex;flex-direction:column;gap:16px">
+        <div class="panel">
+          <h2>How often does each test call a non-responding cell significant?</h2>
+            <p style="margin:0;max-width:80ch">This simulates many cells with the cell settings but <b>no response</b> (the response is switched off), runs each test, and counts how many are called significant. A fair test at α = 0.05 should land near 5%. The toggles add common problems that can fool a test.</p>
+          <div class="checks" id="faToggles"></div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-top:6px">
+            <div class="ctl" style="margin:0;min-width:220px"><label for="faN">Simulated cells</label><output id="faNOut"></output><input type="range" id="faN" min="50" max="500" step="50" value="200"></div>
+            <div class="ctl" style="margin:0;min-width:220px"><label for="faShuf">Shuffles per test</label><output id="faShufOut"></output><input type="range" id="faShuf" min="100" max="500" step="50" value="200"></div>
+            <button class="primary" id="faRun" type="button">Run false-alarm check</button>
+            <button id="faStop" type="button" hidden>Stop</button>
+          </div>
+          <div class="progress" aria-hidden="true"><div id="faBar"></div></div>
+          <p class="cap" id="faStatus">Not run yet. On a laptop, 200 cells take roughly 10–40 s depending on the number of trials.</p>
+        </div>
+        <div class="panel">
+          <h3>Share of null cells called significant</h3>
+          <p class="cap">Bar = observed share, whisker = 95% interval (Clopper–Pearson), dashed line = 5%. Colour and marker identify the method.</p>
+          <canvas class="chart" id="faChart" height="120" role="img" aria-label="Share of null cells each test calls significant, with 95% intervals and the 5% line"></canvas>
+        </div>
+        <p class="note">These rates come from simulated cells only. They show how each idea behaves under the problems you switch on here.</p>
+      </section>
+    </main>
+  </div>
+
+  <footer class="foot">
+    <span id="footText">Spike test lab - simulated cells only - teaching sketch of spike-response tests. Shuffle counts are small (a few hundred), so the smallest possible p is about 1/(shuffles + 1).</span>
+  </footer>
+</div>
+<script id="engine-src">
+/* Spike test lab — simulation + test engine (teaching sketch).
+   Pure functions, no DOM. Runs in the page and in a Web Worker. */
+(function (root) {
+  'use strict';
+
+  // ---------- random numbers (seeded) ----------
+  function makeRng(seed) {
+    let a = (seed >>> 0) || 1;
+    const u = () => {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+    let spare = null;
+    const normal = () => {
+      if (spare !== null) { const s = spare; spare = null; return s; }
+      let x, y, r;
+      do { x = 2 * u() - 1; y = 2 * u() - 1; r = x * x + y * y; } while (r === 0 || r >= 1);
+      const f = Math.sqrt(-2 * Math.log(r) / r);
+      spare = y * f; return x * f;
+    };
+    const gamma = (k) => { // shape k, scale 1 (Marsaglia–Tsang)
+      if (k < 1) { const g = gamma(k + 1); return g * Math.pow(u() || 1e-12, 1 / k); }
+      const d = k - 1 / 3, c = 1 / Math.sqrt(9 * d);
+      for (;;) {
+        let x, v;
+        do { x = normal(); v = 1 + c * x; } while (v <= 0);
+        v = v * v * v;
+        const uu = u();
+        if (uu < 1 - 0.0331 * x * x * x * x) return d * v;
+        if (Math.log(uu) < 0.5 * x * x + d * (1 - v + Math.log(v))) return d * v;
+      }
+    };
+    return { u, normal, gamma, int: (n) => Math.floor(u() * n) };
+  }
+
+  // ---------- unit-mean samplers (mean 1, coefficient of variation c) ----------
+  function lgam(x) { const c = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5]; let y = x, t = x + 5.5; t -= (x + 0.5) * Math.log(t); let s = 1.000000000190015; for (const ci of c) s += ci / ++y; return -t + Math.log(2.5066282746310005 * s / x); }
+  const phiN = (z) => Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI);
+  function PhiN(z) { const t = 1 / (1 + 0.2316419 * Math.abs(z)); const d = phiN(z) * t * (0.31938153 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429)))); return z >= 0 ? 1 - d : d; }
+  // parameters of each law for mean 1 and CV c
+  function lawPar(law, c) {
+    c = Math.max(c, 0.05);
+    if (law === 'gamma') return { k: 1 / (c * c) };
+    if (law === 'lognormal') { const s2 = Math.log(1 + c * c); return { mu: -s2 / 2, s: Math.sqrt(s2) }; }
+    if (law === 'invgauss') return { lam: 1 / (c * c) };
+    if (law === 'invgamma') { const a = 2 + 1 / (c * c); return { a, b: a - 1 }; }
+    if (law === 'powerlaw') { const a = 1 + Math.sqrt(1 + 1 / (c * c)); return { a, xm: (a - 1) / a }; } // Pareto: pdf ∝ x^-(a+1), x ≥ xm
+    if (law === 'gaussian') { const cc = Math.min(c, 1.5), z = -1 / cc, tm = 1 + cc * phiN(z) / (1 - PhiN(z)); return { m: 1 / tm, s: cc / tm, z }; } // truncated at 0, rescaled to mean 1
+    return {};
+  }
+  function drawLaw(rng, law, c) {
+    const q = lawPar(law, c);
+    if (law === 'gamma') return rng.gamma(q.k) / q.k;
+    if (law === 'lognormal') return Math.exp(q.mu + q.s * rng.normal());
+    if (law === 'invgauss') { // Michael, Schucany & Haas
+      const nu = rng.normal(), y = nu * nu, x = 1 + y / (2 * q.lam) - Math.sqrt(4 * q.lam * y + y * y) / (2 * q.lam);
+      return rng.u() <= 1 / (1 + x) ? x : 1 / x;
+    }
+    if (law === 'invgamma') return q.b / rng.gamma(q.a);
+    if (law === 'powerlaw') return q.xm * Math.pow(1 - rng.u(), -1 / q.a);
+    if (law === 'gaussian') { let x; do { x = q.m + q.s * rng.normal(); } while (x <= 0); return x; }
+    return -Math.log(1 - rng.u()); // exponential
+  }
+  // density of the unit-mean law at x (for the picture)
+  function lawPdf(law, c, x) {
+    if (x <= 0) return 0;
+    const q = lawPar(law, c);
+    if (law === 'gamma') return Math.exp(q.k * Math.log(q.k) + (q.k - 1) * Math.log(x) - q.k * x - lgam(q.k));
+    if (law === 'lognormal') return Math.exp(-Math.pow(Math.log(x) - q.mu, 2) / (2 * q.s * q.s)) / (x * q.s * Math.sqrt(2 * Math.PI));
+    if (law === 'invgauss') return Math.sqrt(q.lam / (2 * Math.PI * x * x * x)) * Math.exp(-q.lam * (x - 1) * (x - 1) / (2 * x));
+    if (law === 'invgamma') return Math.exp(q.a * Math.log(q.b) - lgam(q.a) - (q.a + 1) * Math.log(x) - q.b / x);
+    if (law === 'powerlaw') return x < q.xm ? 0 : q.a * Math.pow(q.xm, q.a) / Math.pow(x, q.a + 1);
+    if (law === 'gaussian') return phiN((x - q.m) / q.s) / (q.s * (1 - PhiN(-q.m / q.s)));
+    return Math.exp(-x);
+  }
+  // regularized incomplete gamma: Q(a, x) = 1 - P(a, x), computed directly in the upper range so tiny tails do not cancel to 0
+  function gammaQ(a, x) {
+    if (x <= 0) return 1;
+    const gln = lgam(a);
+    if (x < a + 1) { let ap = a, sum = 1 / a, del = sum; for (let n = 0; n < 300; n++) { ap++; del *= x / ap; sum += del; if (Math.abs(del) < Math.abs(sum) * 1e-12) break; } return Math.max(0, 1 - Math.min(1, sum * Math.exp(-x + a * Math.log(x) - gln))); }
+    let b = x + 1 - a, c = 1e300, d = 1 / b, h = d;
+    for (let i = 1; i < 300; i++) { const an = -i * (i - a); b += 2; d = an * d + b; if (Math.abs(d) < 1e-300) d = 1e-300; c = b + an / c; if (Math.abs(c) < 1e-300) c = 1e-300; d = 1 / d; const del = d * c; h *= del; if (Math.abs(del - 1) < 1e-12) break; }
+    return Math.min(1, Math.exp(-x + a * Math.log(x) - gln) * h);
+  }
+  function gammaP(a, x) { return x <= 0 ? 0 : 1 - gammaQ(a, x); }
+  // CDF of the unit-mean law with CV c (positive laws); Gaussian here is NOT cut at 0 (mean 1, SD c)
+  function lawCdf(law, c, x) {
+    const q = lawPar(law, c);
+    if (law === 'gaussian') return PhiN((x - 1) / Math.max(c, 1e-9));
+    if (x <= 0) return 0;
+    if (law === 'gamma') return gammaP(q.k, q.k * x);
+    if (law === 'lognormal') return PhiN((Math.log(x) - q.mu) / q.s);
+    if (law === 'invgamma') return 1 - gammaP(q.a, q.b / x);
+    if (law === 'powerlaw') return x < q.xm ? 0 : 1 - Math.pow(q.xm / x, q.a);
+    return 1 - Math.exp(-x);
+  }
+  // interval law used by the cell (name, CV) — refractory handled separately
+  function isiLaw(p) {
+    if (p.train === 'gamma') return { law: 'gamma', cv: 1 / Math.sqrt(Math.max(p.gammaK, 0.05)) };
+    if (p.train === 'poisson' || p.train === 'refractory') return { law: 'exponential', cv: 1 };
+    return { law: p.train, cv: p.isiCV };
+  }
+
+  // ---------- defaults ----------
+  const T0 = -3, T1 = 3, TW = T1 - T0, DT = 0.002; // window from -3 s to +3 s around the event
+
+  const DEFAULTS = {
+    seed: 7,
+    direction: 'exc',        // 'exc' | 'inh'
+    baseRate: 0.5,           // spikes/s
+    train: 'gamma',          // interval law: 'poisson' | 'gamma' | 'lognormal' | 'invgauss' | 'invgamma' | 'gaussian' | 'powerlaw' | 'refractory'
+    gammaK: 0.7,             // gamma shape (k<1 bursty, k>1 regular)
+    refractoryMs: 2,
+    isiCV: 1.5,              // interval CV for lognormal / inverse-Gaussian / inverse-gamma / Gaussian / power law
+    rateLaw: 'gamma',        // law of the random rate multipliers: 'gamma' | 'lognormal' | 'invgamma' | 'powerlaw' | 'gaussian'
+    winCV: 0,                // CV of an independent rate multiplier per 1 s of session (0 = none; gamma gives negative-binomial counts)
+    trialGainCV: 0,          // CV of per-trial gain (0 = none)
+    driftPct: 0,             // linear change of rate across the session, ±%
+    slowPct: 0,              // slow random rate fluctuation (timescale 20 s), SD in %
+    size: 4,                 // fold change (exc)
+    suppressPct: 80,         // % drop (inh)
+    latencyMs: 50,
+    durationS: 0.5,
+    jitterMs: 20,
+    reliability: 25,         // % of trials that respond
+    shape: 'step',           // 'step' | 'peak' | 'timing'
+    nTrials: 100,
+    itiMin: 6, itiMax: 16,   // s between onsets (minimum gap between trials = itiMin)
+    responds: true           // false = null cell (section 3)
+  };
+
+  function respProfile(p, t) {
+    const d = Math.max(p.durationS, 0.01);
+    if (t < 0) return 0;
+    if (p.shape === 'step') return t <= d ? 1 : 0;
+    if (p.shape === 'peak') return t <= 3 * d ? Math.exp(-t / (d / 3)) : 0;
+    return 0;
+  }
+  function respMult(p, tr) {
+    if (p.shape === 'timing') {
+      const d = Math.max(p.durationS, 0.02);
+      if (tr < 0 || tr > d) return 1;
+      const a = Math.min(Math.max((p.size - 1) / (p.size + 1), 0), 0.95);
+      return 1 + a * Math.cos(2 * Math.PI * tr / d);
+    }
+    const w = respProfile(p, tr);
+    if (w <= 0) return 1;
+    return p.direction === 'exc' ? 1 + (p.size - 1) * w : Math.max(1 - (p.suppressPct / 100) * w, 0);
+  }
+
+  // one continuous session: onsets with gaps, background rate, responses around onsets
+  function simulate(pIn) {
+    const p = Object.assign({}, DEFAULTS, pIn);
+    const rng = makeRng(p.seed);
+    const onsets = []; let t = 10;
+    for (let j = 0; j < p.nTrials; j++) { onsets.push(t); t += p.itiMin + rng.u() * (p.itiMax - p.itiMin); }
+    const L = t + 10, n = Math.ceil(L / DT);
+    const rate = new Float64Array(n);
+    // slow fluctuation: AR(1) on 1 s steps, tau 20 s, unit SD
+    const nsec = Math.ceil(L) + 2, slow = new Float64Array(nsec);
+    const phi = Math.exp(-1 / 20), sd = Math.sqrt(1 - phi * phi);
+    slow[0] = rng.normal(); for (let i = 1; i < nsec; i++) slow[i] = phi * slow[i - 1] + sd * rng.normal();
+    for (let i = 0; i < n; i++) {
+      const tt = (i + 0.5) * DT;
+      const drift = 1 + (p.driftPct / 100) * (2 * tt / L - 1);
+      const sl = 1 + (p.slowPct / 100) * slow[Math.floor(tt)];
+      rate[i] = p.baseRate * Math.max(drift, 0) * Math.max(sl, 0);
+    }
+    // independent rate multiplier per 1 s of session (not locked to events)
+    if (p.winCV > 0) {
+      const wm = new Float64Array(nsec); for (let i = 0; i < nsec; i++) wm[i] = drawLaw(rng, p.rateLaw, p.winCV);
+      for (let i = 0; i < n; i++) rate[i] *= wm[Math.floor((i + 0.5) * DT)];
+    }
+    const meta = [];
+    for (let j = 0; j < p.nTrials; j++) {
+      const on = onsets[j];
+      const respOn = rng.u() * 100 < p.reliability;
+      const latS = (p.latencyMs + p.jitterMs * rng.normal()) / 1000;
+      const gain = p.trialGainCV > 0 ? drawLaw(rng, p.rateLaw, p.trialGainCV) : 1;
+      const i0 = Math.max(0, Math.floor((on + T0) / DT)), i1 = Math.min(n, Math.ceil((on + T1) / DT));
+      for (let i = i0; i < i1; i++) {
+        let m = gain;
+        if (p.responds && respOn) m *= respMult(p, (i + 0.5) * DT - on - latS);
+        rate[i] *= m;
+      }
+      meta.push({ respOn, latS, gain });
+    }
+    const spikes = drawTrain(p, rate, rng);
+    const trials = onsets.map((on) => extract(spikes, on));
+    // true mean rate in the trial window (dashed line)
+    const m = Math.round(TW / DT), meanRate = new Float64Array(m);
+    for (const on of onsets) { const i0 = Math.floor((on + T0) / DT); for (let k = 0; k < m; k++) meanRate[k] += rate[i0 + k] / onsets.length; }
+    return { params: p, spikes, onsets, L, trials, meta, meanRate };
+  }
+
+  // renewal train by time rescaling; refractory as dead time
+  function drawTrain(p, rate, rng) {
+    const n = rate.length, cum = new Float64Array(n + 1);
+    for (let i = 0; i < n; i++) cum[i + 1] = cum[i] + rate[i] * DT;
+    const total = cum[n], out = [];
+    if (total <= 0) return out;
+    const il = isiLaw(p);
+    const isi = () => drawLaw(rng, il.law, il.cv);
+    const dead = p.train === 'refractory' ? Math.max(p.refractoryMs, 0) / 1000 : 0;
+    let Lr = rng.u() * isi(), idx = 0;
+    while (Lr < total) {
+      while (idx < n && cum[idx + 1] < Lr) idx++;
+      if (idx >= n) break;
+      const w = rate[idx] * DT, frac = w > 0 ? (Lr - cum[idx]) / w : 0;
+      const tt = (idx + Math.min(Math.max(frac, 0), 1)) * DT;
+      out.push(tt);
+      if (dead > 0) { const j = Math.min(n, Math.ceil((tt + dead) / DT)); Lr = Math.max(cum[j], Lr) + isi(); }
+      else Lr += isi();
+    }
+    return out;
+  }
+
+  function lowerBound(a, x) { let lo = 0, hi = a.length; while (lo < hi) { const m = (lo + hi) >> 1; if (a[m] < x) lo = m + 1; else hi = m; } return lo; }
+  function extract(spikes, on) {
+    const i0 = lowerBound(spikes, on + T0), i1 = lowerBound(spikes, on + T1), out = [];
+    for (let i = i0; i < i1; i++) out.push(spikes[i] - on);
+    return out;
+  }
+  // circularly shift the whole session train by s and cut the trials again
+  function shiftedTrials(sim, s) {
+    const L = sim.L, sp = sim.spikes, n = sp.length;
+    s = ((s % L) + L) % L;
+    const shifted = new Float64Array(n);
+    const cut = lowerBound(sp, L - s);
+    let k = 0;
+    for (let i = cut; i < n; i++) shifted[k++] = sp[i] + s - L;
+    for (let i = 0; i < cut; i++) shifted[k++] = sp[i] + s;
+    return sim.onsets.map((on) => extract(shifted, on));
+  }
+  // Per-trial shift null:
+  // each trial's own segment [onset - 6, onset + 6) s is rotated circularly by its own shift, drawn independently per
+  // trial from 100..400 bins of 20 ms (2..8 s, the 301 allowed shifts); the rotation wraps inside the segment, never
+  // into the rest of the session. Spikes outside the simulated session simply are not there (no padding).
+  const SEG_H = 6, SEG_BIN = 0.02, SEG_K0 = 100, SEG_K = 301;
+  function segCache(sim) {
+    if (sim._segs) return sim._segs;
+    const sp = sim.spikes;
+    sim._segs = sim.onsets.map((on) => {
+      const i0 = lowerBound(sp, on - SEG_H), i1 = lowerBound(sp, on + SEG_H), a = new Float64Array(i1 - i0);
+      for (let k = 0; k < a.length; k++) a[k] = sp[i0 + k] - (on - SEG_H);
+      return a;
+    });
+    return sim._segs;
+  }
+  function perTrialShifted(sim, rng) {
+    const segs = segCache(sim), W2 = 2 * SEG_H, out = new Array(segs.length);
+    for (let j = 0; j < segs.length; j++) {
+      const a = segs[j], s = (SEG_K0 + Math.floor(rng.u() * SEG_K)) * SEG_BIN, cut = lowerBound(a, W2 - s), tr = [];
+      for (let i = cut; i < a.length; i++) { const t = a[i] + s - W2 - SEG_H; if (t >= T0 && t < T1) tr.push(t); }
+      for (let i = 0; i < cut; i++) { const t = a[i] + s - SEG_H; if (t >= T0 && t < T1) tr.push(t); }
+      out[j] = tr;
+    }
+    return out;
+  }
+  // One surrogate set of trials for every shift-based test. sim._shiftMode is set by runMethod from opts.shiftNull.
+  function nullTrials(sim, rng, minShift) {
+    return sim._shiftMode === 'trial' ? perTrialShifted(sim, rng) : shiftedTrials(sim, drawShift(rng, minShift, sim.L));
+  }
+  function countIn(train, a, b) { let c = 0; for (const t of train) if (t >= a && t < b) c++; return c; }
+  function shiftTrain(train, s) {
+    const out = new Array(train.length);
+    for (let i = 0; i < train.length; i++) {
+      let t = train[i] + s;
+      while (t >= T1) t -= TW;
+      while (t < T0) t += TW;
+      out[i] = t;
+    }
+    return out;
+  }
+  function rotateInWindow(train, a, b, s) {
+    const w = b - a;
+    return train.map((t) => {
+      if (t < a || t >= b) return t;
+      let x = t + s; while (x >= b) x -= w; while (x < a) x += w; return x;
+    });
+  }
+  function drawShift(rng, minShift, L) {
+    // circular offset over the session, skipping |shift| < minShift
+    return minShift + rng.u() * (L - 2 * minShift);
+  }
+  function pFrom(nullArr, obs, tail) {
+    let c = 0;
+    for (const v of nullArr) {
+      if (tail === 'two' ? Math.abs(v) >= Math.abs(obs) - 1e-12 : v >= obs - 1e-12) c++;
+    }
+    if (tail === 'rank2') { // two-sided by rank: 2 x the smaller tail
+      let hi = 0, lo = 0; for (const v of nullArr) { if (v >= obs - 1e-12) hi++; if (v <= obs + 1e-12) lo++; }
+      return Math.min(1, 2 * (1 + Math.min(hi, lo)) / (nullArr.length + 1));
+    }
+    return (1 + c) / (nullArr.length + 1);
+  }
+  function normCdf(z) {
+    const t = 1 / (1 + 0.2316419 * Math.abs(z));
+    const d = 0.3989422804014327 * Math.exp(-z * z / 2);
+    const q = d * t * (0.31938153 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+    return z > 0 ? 1 - q : q;
+  }
+  function lgamma(x) {
+    const c = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5];
+    let y = x, tmp = x + 5.5; tmp -= (x + 0.5) * Math.log(tmp);
+    let ser = 1.000000000190015; for (const ci of c) ser += ci / ++y;
+    return -tmp + Math.log(2.5066282746310005 * ser / x);
+  }
+  function poisUpper(k, mu) { // P(X >= k)
+    if (k <= 0) return 1;
+    if (mu <= 0) return 0;
+    let s = 0, term = Math.exp(-mu); s = term;
+    for (let i = 1; i < k; i++) { term *= mu / i; s += term; }
+    return Math.max(0, 1 - s);
+  }
+  function nbUpper(k, mu, r) { // NB with mean mu, size r; P(X >= k)
+    if (k <= 0) return 1;
+    if (!isFinite(r) || r > 1e6) return poisUpper(k, mu);
+    const pr = r / (r + mu); let s = 0;
+    for (let i = 0; i < k; i++) s += Math.exp(lgamma(i + r) - lgamma(r) - lgamma(i + 1) + r * Math.log(pr) + i * Math.log(1 - pr));
+    return Math.max(0, 1 - s);
+  }
+
+  // ---------- statistics on a set of trains ----------
+  function bmStat(trains, W, binS) {
+    const nb = Math.max(1, Math.round((W.base[1] - W.base[0]) / binS));
+    const np = Math.max(1, Math.round((W.resp[1] - W.resp[0]) / binS));
+    let ob = 0, op = 0;
+    for (const tr of trains) {
+      const hb = new Uint8Array(nb), hp = new Uint8Array(np);
+      for (const t of tr) {
+        if (t >= W.base[0] && t < W.base[1]) hb[Math.min(nb - 1, Math.floor((t - W.base[0]) / binS))] = 1;
+        else if (t >= W.resp[0] && t < W.resp[1]) hp[Math.min(np - 1, Math.floor((t - W.resp[0]) / binS))] = 1;
+      }
+      for (const v of hb) ob += v; for (const v of hp) op += v;
+    }
+    const qb = ob / (nb * trains.length), qp = op / (np * trains.length);
+    return { A: 0.5 + (qp - qb) / 2, qb, qp };
+  }
+  function rrStat(trains, W) {
+    let kb = 0, kp = 0;
+    for (const tr of trains) { kb += countIn(tr, W.base[0], W.base[1]); kp += countIn(tr, W.resp[0], W.resp[1]); }
+    const n = trains.length, db = W.base[1] - W.base[0], dp = W.resp[1] - W.resp[0];
+    return { rr: Math.log((kp + 0.5) / (n * dp)) - Math.log((kb + 0.5) / (n * db)), kb, kp };
+  }
+  function madStat(trains, W) {
+    const db = W.base[1] - W.base[0], dp = W.resp[1] - W.resp[0];
+    let s = 0;
+    for (const tr of trains) s += Math.abs(countIn(tr, W.resp[0], W.resp[1]) / dp - countIn(tr, W.base[0], W.base[1]) / db);
+    return s / trains.length;
+  }
+  function positions(trains, a, b) {
+    const x = [];
+    for (const tr of trains) for (const t of tr) if (t >= a && t < b) x.push((t - a) / (b - a));
+    return x.sort((p, q) => p - q);
+  }
+  function cvm(x) {
+    const n = x.length; if (n === 0) return 0;
+    let s = 1 / (12 * n);
+    for (let i = 0; i < n; i++) { const d = x[i] - (2 * i + 1) / (2 * n); s += d * d; }
+    return s;
+  }
+  function zetaCurve(x) { // x sorted in [0,1]
+    const n = x.length; if (n === 0) return { dev: [], peak: 0, at: 0 };
+    const dev = new Array(n); let mean = 0;
+    for (let i = 0; i < n; i++) { dev[i] = (i + 1) / n - x[i]; mean += dev[i]; }
+    mean /= n; let peak = 0, at = 0;
+    for (let i = 0; i < n; i++) { dev[i] -= mean; if (Math.abs(dev[i]) > Math.abs(peak)) { peak = dev[i]; at = x[i]; } }
+    return { dev, peak, at };
+  }
+
+
+  // ---------- Brunner–Munzel test (full, as scipy.stats.brunnermunzel with the t distribution) ----------
+  function tTwo(t, df) { if (!isFinite(t)) return 0; return Math.min(1, ibetaE(df / (df + t * t), df / 2, 0.5)); }
+  // x = baseline values, y = response values. phat = P(X < Y) + 0.5 P(X = Y), the relative effect.
+  function brunnerMunzel(x, y) {
+    const nx = x.length, ny = y.length;
+    if (nx < 2 || ny < 2) return { p: null, note: 'Needs at least 2 values in each group.' };
+    const rc = avgRanks(x.concat(y)).r, rx = avgRanks(x).r, ry = avgRanks(y).r;
+    let mcx = 0, mcy = 0; for (let i = 0; i < nx; i++) mcx += rc[i] / nx; for (let j = 0; j < ny; j++) mcy += rc[nx + j] / ny;
+    const mx = (nx + 1) / 2, my = (ny + 1) / 2;
+    let Sx = 0, Sy = 0;
+    for (let i = 0; i < nx; i++) { const d = rc[i] - rx[i] - mcx + mx; Sx += d * d; } Sx /= (nx - 1);
+    for (let j = 0; j < ny; j++) { const d = rc[nx + j] - ry[j] - mcy + my; Sy += d * d; } Sy /= (ny - 1);
+    const phat = (mcy - my) / nx, v = nx * Sx + ny * Sy;
+    if (!(v > 0)) {
+      if (Math.abs(phat - 0.5) < 1e-12) return { p: 1, phat, w: 0, df: NaN, Sx, Sy, note: 'All values tied: no difference.' };
+      return { p: null, phat, w: Infinity, df: NaN, Sx, Sy, note: 'Complete separation with no spread inside either group: the BM variance is 0 and the test is undefined (scipy returns nan). Counted as not called.' };
+    }
+    const w = nx * ny * (mcy - mcx) / ((nx + ny) * Math.sqrt(v));
+    const df = (v * v) / ((nx * Sx) * (nx * Sx) / (nx - 1) + (ny * Sy) * (ny * Sy) / (ny - 1));
+    return { p: tTwo(w, df), phat, w, df, Sx, Sy };
+  }
+  // ---------- two-sample Cramér–von Mises T (Anderson 1962), as scipy.stats.cramervonmises_2samp ----------
+  function cvm2(x, y) { // x, y sorted
+    const n = x.length, m = y.length; if (!n || !m) return 0;
+    const r = avgRanks(x.concat(y)).r; let u1 = 0, u2 = 0;
+    for (let i = 0; i < n; i++) { const d = r[i] - (i + 1); u1 += d * d; }
+    for (let j = 0; j < m; j++) { const d = r[n + j] - (j + 1); u2 += d * d; }
+    const k = n * m, N = n + m;
+    return (n * u1 + m * u2) / (k * N) - (4 * k - 1) / (6 * N);
+  }
+  const SHAPE2_BASE = [-3, -0.25], SHAPE2_POST = [0, 2.75];
+
+  // ---------- the methods ----------
+  // One set of fake trials for the ISI-resampling null: intervals drawn with replacement from the cell's own intervals.
+  // stationary start: forward recurrence = uniform point inside a length-biased interval
+  function isiFakeTrials(nTrials, isis, cumIsi, rng, start) {
+    const out = new Array(nTrials);
+    for (let j = 0; j < nTrials; j++) {
+      const tr = [], first = isis[Math.min(isis.length - 1, lowerBound(cumIsi, rng.u() * cumIsi[cumIsi.length - 1]))];
+      let t = start === 'fixed' ? T0 + 0.001 + rng.u() * 0.299 : T0 + rng.u() * first;
+      while (t < T1) { tr.push(t); t += isis[rng.int(isis.length)]; }
+      out[j] = tr;
+    }
+    return out;
+  }
+  function nullShift(sim, rng, nShuf, minShift, statFn) {
+    const out = new Float64Array(nShuf);
+    for (let s = 0; s < nShuf; s++) out[s] = statFn(nullTrials(sim, rng, minShift));
+    return out;
+  }
+
+  // trials that must pass: the set share of n, rounded up, never fewer than 2
+  function passNeed(n, pct) { return Math.max(2, Math.ceil(((pct || 0) / 100) * n - 1e-9)); }
+
+
+  // ---------- T4 family: per-trial phase tests ----------
+  // Pure helpers. The original choices are kept as options so the false-alarm tab can compare "original" with "fixed".
+  function avgRanks(a) {
+    const idx = a.map((v, i) => [v, i]).sort((x, y) => x[0] - y[0]), r = new Array(a.length); let tie = 0;
+    for (let i = 0; i < idx.length;) { let j = i; while (j + 1 < idx.length && idx[j + 1][0] === idx[i][0]) j++; const rk = (i + j + 2) / 2; for (let k = i; k <= j; k++) r[idx[k][1]] = rk; const t = j - i + 1; tie += t * t * t - t; i = j + 1; }
+    return { r, tie };
+  }
+  // Wilcoxon signed-rank, Pratt zero handling (zeros get ranks, then are dropped), two-sided.
+  // mode 'exact' (fixed): exact distribution of the kept ranks (ties handled) up to 50 non-zero trials, normal approximation above.
+  // mode 'scipy' (original): scipy 1.16 stats.wilcoxon(..., zero_method='pratt'), method 'auto' — exact when there are no ties and
+  // no zeros, exact permutation up to 13 trials, otherwise the normal approximation (no continuity correction).
+  function signedRank(d, mode) {
+    const n = d.length, ad = d.map(Math.abs), rk = avgRanks(ad), kept = []; let z0 = 0, wPlus = 0;
+    for (let i = 0; i < n; i++) { if (d[i] === 0) z0++; else { kept.push(rk.r[i]); if (d[i] > 0) wPlus += rk.r[i]; } }
+    const m = kept.length;
+    if (m === 0) return { p: 1, m, z0, how: 'no non-zero trials' };
+    const cnt = new Map(); for (const v of ad) if (v !== 0) cnt.set(v, (cnt.get(v) || 0) + 1);
+    let tieNZ = 0; for (const t of cnt.values()) tieNZ += t * t * t - t; // scipy leaves the zeros out of the tie correction
+    const approx = () => {
+      const mn = n * (n + 1) / 4 - z0 * (z0 + 1) / 4;
+      const v = (n * (n + 1) * (2 * n + 1) - z0 * (z0 + 1) * (2 * z0 + 1)) / 24 - tieNZ / 48;
+      const z = v > 0 ? (wPlus - mn) / Math.sqrt(v) : 0;
+      return Math.min(1, 2 * (1 - normCdf(Math.abs(z))));
+    };
+    if (mode === 'scipy' && (z0 > 0 || rk.tie > 0) && n > 13) return { p: approx(), m, z0, how: 'normal approx. (scipy, > 13 trials with ties or zeros)' };
+    if (m > 50) return { p: approx(), m, z0, how: 'normal approx. (> 50 trials)' };
+    const r2 = kept.map((x) => Math.round(2 * x)), tot = r2.reduce((a, b) => a + b, 0), dist = new Float64Array(tot + 1); dist[0] = 1;
+    for (const q of r2) { for (let s = tot; s >= q; s--) dist[s] = 0.5 * dist[s] + 0.5 * dist[s - q]; for (let s = Math.min(q, tot + 1) - 1; s >= 0; s--) dist[s] *= 0.5; }
+    const mid = tot / 2, dev = Math.abs(Math.round(2 * wPlus) - mid); let p = 0;
+    for (let s = 0; s <= tot; s++) if (Math.abs(s - mid) >= dev - 1e-9) p += dist[s];
+    return { p: Math.min(1, p), m, z0, how: 'exact' };
+  }
+  function bhAdjust(ps) { // Benjamini–Hochberg adjusted p; null entries are not tested and stay null
+    const idx = ps.map((p, i) => [p, i]).filter((x) => x[0] !== null).sort((a, b) => a[0] - b[0]), out = ps.map(() => null), m = idx.length; let run = 1;
+    for (let j = m - 1; j >= 0; j--) { run = Math.min(run, idx[j][0] * m / (j + 1)); out[idx[j][1]] = Math.min(1, run); }
+    return out;
+  }
+  function median(a) { const s = a.filter((x) => isFinite(x)).sort((x, y) => x - y), n = s.length; return n === 0 ? NaN : n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; }
+  function pctLinear(a, q) { const s = a.slice().sort((x, y) => x - y); if (!s.length) return NaN; const h = (s.length - 1) * q / 100, lo = Math.floor(h); return s[lo] + (h - lo) * ((s[Math.min(lo + 1, s.length - 1)]) - s[lo]); }
+  function betacf(x, a, b) { let qab = a + b, qap = a + 1, qam = a - 1, c = 1, d = 1 - qab * x / qap; d = 1 / (Math.abs(d) < 1e-30 ? 1e-30 : d); let h = d; for (let m = 1; m <= 200; m++) { const m2 = 2 * m; let aa = m * (b - m) * x / ((qam + m2) * (a + m2)); d = 1 + aa * d; d = 1 / (Math.abs(d) < 1e-30 ? 1e-30 : d); c = 1 + aa / c; c = Math.abs(c) < 1e-30 ? 1e-30 : c; h *= d * c; aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2)); d = 1 + aa * d; d = 1 / (Math.abs(d) < 1e-30 ? 1e-30 : d); c = 1 + aa / c; c = Math.abs(c) < 1e-30 ? 1e-30 : c; const del = d * c; h *= del; if (Math.abs(del - 1) < 3e-12) break; } return h; }
+  function ibetaE(x, a, b) { if (x <= 0) return 0; if (x >= 1) return 1; const bt = Math.exp(lgam(a + b) - lgam(a) - lgam(b) + a * Math.log(x) + b * Math.log(1 - x)); return x < (a + 1) / (a + b + 2) ? bt * betacf(x, a, b) / a : 1 - bt * betacf(1 - x, b, a) / b; }
+  function spearman(y) { // rank correlation of y with trial order; two-sided p from the t approximation (as scipy)
+    const n = y.length; if (n < 4) return { rho: NaN, p: NaN };
+    const rx = avgRanks(y.map((_, i) => i)).r, ry = avgRanks(y).r, mx = (n + 1) / 2;
+    let sxy = 0, sxx = 0, syy = 0; for (let i = 0; i < n; i++) { sxy += (rx[i] - mx) * (ry[i] - mx); sxx += (rx[i] - mx) ** 2; syy += (ry[i] - mx) ** 2; }
+    if (syy === 0) return { rho: NaN, p: NaN };
+    const rho = sxy / Math.sqrt(sxx * syy), df = n - 2, t2 = rho * rho * df / Math.max(1e-15, 1 - rho * rho);
+    return { rho, p: Math.abs(rho) >= 1 ? 0 : ibetaE(df / (df + t2), df / 2, 0.5) };
+  }
+  // Windows: the response window 0–D plays the role of the behaviour; pre-window [−pre, 0); optional post window after D.
+  function t4Data(sim, o, trials) {
+    trials = trials || sim.trials;
+    const D = o.W.resp[1], gap = Math.max(0, o.t4PreGap || 0), pre = Math.min(o.t4Pre, -T0 - gap), post = Math.max(0, Math.min(o.t4Post || 0, T1 - D));
+    const ph = [['onset', 0, 0.25 * D], ['sustained', 0.25 * D, 0.75 * D], ['offset', 0.75 * D, D]]; if (post > 0.001) ph.push(['post', D, D + post]);
+    const preR = trials.map((tr) => countIn(tr, -gap - pre, -gap) / pre);
+    const rates = ph.map(([, a, b]) => trials.map((tr) => countIn(tr, a, b) / (b - a)));
+    const diffs = rates.map((rr) => rr.map((v, i) => v - preR[i]));
+    return { D, pre, gap, post, ph, preR, rates, diffs };
+  }
+  function srZ(d) { // standardized Pratt signed-rank statistic (the number the shift null compares)
+    const n = d.length, rk = avgRanks(d.map(Math.abs)); let z0 = 0, w = 0; for (let i = 0; i < n; i++) { if (d[i] === 0) z0++; else if (d[i] > 0) w += rk.r[i]; }
+    const v = (n * (n + 1) * (2 * n + 1) - z0 * (z0 + 1) * (2 * z0 + 1)) / 24 - rk.tie / 48; return v > 0 ? (w - (n * (n + 1) / 4 - z0 * (z0 + 1) / 4)) / Math.sqrt(v) : 0;
+  }
+  // Shift null (fix): rotate the whole session train, re-cut trials, recompute the same statistic. Keeps the unequal
+  // window lengths and the cell's own spiking, so skewed differences (sparse cells, short pre-window) no longer fake a response.
+  function shiftP(sim, o, salt, zFns) {
+    const rng = makeRng((o.seed ^ salt) >>> 0), obs = zFns.map((f) => f(sim.trials)), ge = zFns.map(() => 0), N = o.nShuf;
+    for (let s = 0; s < N; s++) { const tr = nullTrials(sim, rng, o.shiftSet === 'every' ? 0.02 : 2); zFns.forEach((f, k) => { if (Math.abs(f(tr)) >= Math.abs(obs[k]) - 1e-12) ge[k]++; }); }
+    return ge.map((c) => (1 + c) / (N + 1));
+  }
+  const T4_MIN = 3; // original: a phase is tested only with at least 3 non-zero trial differences
+  function runT4(sim, o, pMode) {
+    const t = t4Data(sim, o);
+    let sp = null;
+    if (pMode === 'shift') sp = shiftP(sim, o, 0x74, t.ph.map((_, k) => (trs) => srZ(t4Data(sim, o, trs).diffs[k])));
+    const phases = t.ph.map(([lab, a, b], k) => { const s = signedRank(t.diffs[k], pMode === 'shift' ? 'exact' : pMode); const tested = s.m >= T4_MIN; return { lab, a, b, raw: tested ? (sp ? sp[k] : s.p) : null, how: sp ? 'shift null, ' + o.nShuf + ' shifts' : s.how, m: s.m, z0: s.z0, med: median(t.diffs[k]), tested }; });
+    const adj = bhAdjust(phases.map((x) => x.raw)); phases.forEach((x, i) => { x.q = adj[i]; });
+    const tested = phases.filter((x) => x.tested);
+    let best = -1; phases.forEach((x, i) => { if (x.tested && (best < 0 || x.q < phases[best].q)) best = i; });
+    return { t, phases, best, p: best >= 0 ? phases[best].q : 1, nTested: tested.length };
+  }
+  function runT4pre(sim, o, pMode, weight) {
+    const t = t4Data(sim, o), main = t.ph.slice(0, 3);
+    const phaseMean = sim.trials.map((tr, i) => weight === 'equal' ? (t.rates[0][i] + t.rates[1][i] + t.rates[2][i]) / 3 : countIn(tr, 0, t.D) / t.D);
+    const d = t.preR.map((v, i) => v - phaseMean[i]), s = signedRank(d, pMode === 'shift' ? 'exact' : pMode);
+    void main;
+    const dFor = (trs) => { const u = t4Data(sim, o, trs); return u.preR.map((v, i) => v - (weight === 'equal' ? (u.rates[0][i] + u.rates[1][i] + u.rates[2][i]) / 3 : countIn(trs[i], 0, u.D) / u.D)); };
+    if (pMode === 'shift') { s.p = shiftP(sim, o, 0x75, [(trs) => srZ(dFor(trs))])[0]; s.how = 'shift null, ' + o.nShuf + ' shifts'; }
+    return { t, d, phaseMean, s, p: s.m >= T4_MIN ? s.p : null };
+  }
+  // Trial responsiveness (descriptive, only for called cells). A trial "responds" in the best phase if its difference
+  // has the sign of the phase median and is at least the 90th percentile of a null of |differences| with no response.
+  // null 'pipeline' (original): all pairwise |pre_i − pre_j| (pre-window vs pre-window, so the window lengths do not match the phase test);
+  // null 'baseline' (fix): per trial, rate in a phase-length window just before the pre-window minus that trial's pre rate —
+  // the same shape of difference as the real one, taken from time with no response.
+  function trialResponsiveness(sim, o, r4, nullMode) {
+    if (r4.best < 0) return null;
+    const ph = r4.phases[r4.best], d = r4.t.diffs[r4.best], pre = r4.t.pre, gap = r4.t.gap, L = ph.b - ph.a;
+    if (!isFinite(ph.med) || ph.med === 0) return null;
+    let nul = [];
+    if (nullMode === 'pipeline') { const b = r4.t.preR; for (let i = 0; i < b.length; i++) for (let j = i + 1; j < b.length; j++) nul.push(Math.abs(b[i] - b[j])); }
+    else { const e0 = -gap - pre, a0 = Math.max(T0, e0 - L), len = e0 - a0; if (len > 0.01) nul = sim.trials.map((tr, i) => Math.abs(countIn(tr, a0, e0) / len - r4.t.preR[i])); }
+    if (nul.length < 4) return null;
+    const thr = pctLinear(nul, 90), sg = Math.sign(ph.med);
+    const resp = d.map((v) => Math.sign(v) === sg && Math.abs(v) >= thr);
+    const k = resp.filter(Boolean).length;
+    return { phase: ph.lab, thr, n: d.length, k, frac: k / d.length, resp, diffs: d, sign: sg, nullN: nul.length, nullMode };
+  }
+
+  const fmtPe = (p) => p === null || p === undefined ? '—' : p < 0.001 ? p.toExponential(1) : p.toFixed(3);
+
+  const METHODS = {
+    wilcoxon: {
+      name: 'Paired Wilcoxon', status: 'Paired rank test', kind: 'detect',
+      blurb: 'For each trial, compare the response-window rate with the baseline rate. Rank the differences and ask whether the positive ranks outweigh the negative ones.',
+      run(sim, o) {
+        const W = o.W, db = W.base[1] - W.base[0], dp = W.resp[1] - W.resp[0];
+        const diffs = [], pairs = [];
+        for (const tr of sim.trials) {
+          const b = countIn(tr, W.base[0], W.base[1]) / db, r = countIn(tr, W.resp[0], W.resp[1]) / dp;
+          pairs.push([b, r]); if (r - b !== 0) diffs.push(r - b);
+        }
+        const n = diffs.length;
+        if (n === 0) return { stat: 0, p: 1, note: 'All differences are zero.', pairs };
+        const idx = diffs.map((d, i) => [Math.abs(d), i]).sort((a, b) => a[0] - b[0]);
+        const ranks = new Array(n); let tieCorr = 0;
+        for (let i = 0; i < n;) {
+          let j = i; while (j + 1 < n && idx[j + 1][0] === idx[i][0]) j++;
+          const rk = (i + j + 2) / 2; for (let k = i; k <= j; k++) ranks[idx[k][1]] = rk;
+          const t = j - i + 1; tieCorr += t * t * t - t; i = j + 1;
+        }
+        let wPlus = 0; for (let i = 0; i < n; i++) if (diffs[i] > 0) wPlus += ranks[i];
+        let p;
+        if (n < 10) { // exact on doubled ranks
+          const r2 = ranks.map((r) => Math.round(2 * r)), tot = r2.reduce((a, b) => a + b, 0);
+          let dist = new Float64Array(tot + 1); dist[0] = 1;
+          for (const r of r2) { const nd = new Float64Array(tot + 1); for (let s = 0; s <= tot; s++) if (dist[s]) { nd[s] += dist[s] / 2; if (s + r <= tot) nd[s + r] += dist[s] / 2; } dist = nd; }
+          const w2 = Math.round(2 * wPlus), mid = tot / 2, dev = Math.abs(w2 - mid);
+          p = 0; for (let s = 0; s <= tot; s++) if (Math.abs(s - mid) >= dev - 1e-9) p += dist[s];
+        } else {
+          const mu = n * (n + 1) / 4, sd = Math.sqrt(n * (n + 1) * (2 * n + 1) / 24 - tieCorr / 48);
+          const z = sd > 0 ? (Math.abs(wPlus - mu) - 0.5) / sd : 0;
+          p = 2 * (1 - normCdf(Math.max(z, 0)));
+        }
+        return { stat: wPlus, statName: 'W+', p: Math.min(1, p), pairs, direction: wPlus > n * (n + 1) / 4 ? 'up' : 'down' };
+      }
+    },
+    bm_shift: {
+      name: 'BM: relative effect', status: 'Bin-level rank test', kind: 'detect',
+      blurb: 'Cut both windows into short bins that either hold a spike or not. A is the chance that a response bin beats a baseline bin (ties count half). The null rotates the whole session’s spike train by one random offset (same shift for every trial), cuts the trials again at the real events, and recomputes A.',
+      run(sim, o) {
+        const rng = makeRng(o.seed ^ 0xB5), W = o.W;
+        const f = (tr) => bmStat(tr, W, o.binS).A - 0.5;
+        const obs = bmStat(sim.trials, W, o.binS);
+        const nul = nullShift(sim, rng, o.nShuf, o.shiftSet === 'every' ? 0.02 : 2, f);
+        return { stat: obs.A, statName: 'A', centered: obs.A - 0.5, p: pFrom(nul, obs.A - 0.5, 'two'), nullDist: nul, extra: obs, direction: obs.A >= 0.5 ? 'up' : 'down' };
+      }
+    },
+    bm_full: {
+      name: 'Brunner–Munzel test', status: 'Full two-sample test', kind: 'detect',
+      blurb: 'The full Brunner–Munzel test: compares the baseline values with the response values by ranks, allows the two groups to have different spreads, and takes p from a t distribution with Welch–Satterthwaite degrees of freedom (as scipy.stats.brunnermunzel). Default data: one rate per trial in each window. The option “binary bins” uses the same bins as BM: relative effect, but those bins are not independent (bins of one trial share that trial), so its p is too small. Its t-based p also assumes the trials are independent: when the rate drifts slowly across nearby trials it calls more null cells than α (see the false-alarm tab). The shift-null tests do not need that assumption.',
+      run(sim, o) {
+        const W = o.W, db = W.base[1] - W.base[0], dp = W.resp[1] - W.resp[0];
+        let x, y;
+        if (o.bmData === 'bins') {
+          x = []; y = [];
+          const nb = Math.max(1, Math.round(db / o.binS)), np = Math.max(1, Math.round(dp / o.binS));
+          for (const tr of sim.trials) {
+            const hb = new Uint8Array(nb), hp = new Uint8Array(np);
+            for (const t of tr) {
+              if (t >= W.base[0] && t < W.base[1]) hb[Math.min(nb - 1, Math.floor((t - W.base[0]) / o.binS))] = 1;
+              else if (t >= W.resp[0] && t < W.resp[1]) hp[Math.min(np - 1, Math.floor((t - W.resp[0]) / o.binS))] = 1;
+            }
+            for (const v of hb) x.push(v); for (const v of hp) y.push(v);
+          }
+        } else {
+          x = sim.trials.map((tr) => countIn(tr, W.base[0], W.base[1]) / db);
+          y = sim.trials.map((tr) => countIn(tr, W.resp[0], W.resp[1]) / dp);
+        }
+        const bm = brunnerMunzel(x, y);
+        return { stat: bm.phat, statName: 'relative effect p̂', p: bm.p, pText: bm.p === null ? 'undefined (no spread, see note)' : 'Brunner–Munzel t = ' + (isFinite(bm.w) ? bm.w.toFixed(2) : '—') + ', df ' + (isFinite(bm.df) ? bm.df.toFixed(1) : '—'), bm, x, y, note: bm.note, direction: bm.phat >= 0.5 ? 'up' : 'down' };
+      }
+    },
+    rate_ratio: {
+      name: 'signed log rate ratio', status: 'Count-based', kind: 'detect',
+      blurb: 'Pool all trials and take the log of (response rate ÷ baseline rate), with +0.5 added to each count. Same shift null as BM: relative effect. The sign is kept, and a drop is not capped by how sparse the baseline is.',
+      run(sim, o) {
+        const rng = makeRng(o.seed ^ 0x3C), W = o.W;
+        const f = (tr) => rrStat(tr, W).rr;
+        const obs = rrStat(sim.trials, W);
+        const nul = nullShift(sim, rng, o.nShuf, o.shiftSet === 'every' ? 0.02 : 2, f);
+        return { stat: obs.rr, statName: 'log ratio', centered: obs.rr, p: pFrom(nul, obs.rr, 'two'), nullDist: nul, extra: obs, direction: obs.rr >= 0 ? 'up' : 'down' };
+      }
+    },
+    shape: {
+      name: 'Shape axis: Cramér–von Mises vs uniform', status: 'Timing test', kind: 'detect',
+      blurb: 'Pool the spike positions inside 0–3 s and measure how far their cumulative curve is from a straight line (Cramér–von Mises W²). It asks whether spike timing moved, not whether the rate changed.',
+      run(sim, o) {
+        const rng = makeRng(o.seed ^ 0x51), a = o.shapeWin[0], b = o.shapeWin[1];
+        const f = (tr) => cvm(positions(tr, a, b));
+        const x = positions(sim.trials, a, b), obs = cvm(x);
+        const nul = new Float64Array(o.nShuf);
+        for (let s = 0; s < o.nShuf; s++) {
+          let sh;
+          if (o.shiftSet === 'window') sh = sim.trials.map((tr) => rotateInWindow(tr, a, b, rng.u() * (b - a)));
+          else sh = nullTrials(sim, rng, o.shiftSet === 'every' ? 0.02 : 3);
+          nul[s] = f(sh);
+        }
+        return { stat: obs, statName: 'W²', p: pFrom(nul, obs, 'upper'), nullDist: nul, positions: x, nSpikes: x.length };
+      }
+    },
+    shape2: {
+      name: 'Shape: two-sample Cramér–von Mises (baseline vs post)', status: 'Two-sample timing test', kind: 'detect',
+      blurb: 'Compares where spikes fall inside the baseline window (−3 to −0.25 s) with where they fall inside the post-event window (0 to 2.75 s), both 2.75 s long and rescaled to 0–1. The two-sample Cramér–von Mises T measures how far apart the two cumulative curves are. Same circular-shift null as the shape axis, upper tail. Like the shape axis it asks about timing, not rate.',
+      run(sim, o) {
+        const rng = makeRng(o.seed ^ 0x52), A = SHAPE2_BASE, B = SHAPE2_POST;
+        const f = (tr) => cvm2(positions(tr, A[0], A[1]), positions(tr, B[0], B[1]));
+        const xb = positions(sim.trials, A[0], A[1]), xp = positions(sim.trials, B[0], B[1]);
+        if (xb.length === 0 || xp.length === 0) return { stat: 0, statName: 'T', p: 1, note: 'No spikes in one of the two windows: the test cannot run (counted as not significant).', nullDist: new Float64Array(0), posBase: xb, posPost: xp };
+        const obs = cvm2(xb, xp);
+        const nul = nullShift(sim, rng, o.nShuf, o.shiftSet === 'every' ? 0.02 : 3, f);
+        return { stat: obs, statName: 'T', p: pFrom(nul, obs, 'upper'), nullDist: nul, posBase: xb, posPost: xp };
+      }
+    },
+    zeta: {
+      name: 'ZETA', status: 'Exploratory', kind: 'detect',
+      blurb: 'Line up all spikes after the onset and draw their cumulative curve. Where it bends away from a straight line, timing departs from flat. The peak departure is compared with the peaks you get when the onsets are jittered.',
+      run(sim, o) {
+        const rng = makeRng(o.seed ^ 0x2E), a = o.shapeWin[0], b = o.shapeWin[1];
+        const zc = zetaCurve(positions(sim.trials, a, b));
+        const nul = new Float64Array(o.nShuf);
+        for (let s = 0; s < o.nShuf; s++) {
+          const sh = sim.onsets.map((on) => extract(sim.spikes, on + (2 * rng.u() - 1) * o.jitterS));
+          nul[s] = Math.abs(zetaCurve(positions(sh, a, b)).peak);
+        }
+        const obs = Math.abs(zc.peak);
+        let p;
+        if (o.zetaP === 'gumbel') {
+          let m = 0, v = 0; for (const x of nul) m += x; m /= nul.length;
+          for (const x of nul) v += (x - m) * (x - m); v /= Math.max(1, nul.length - 1);
+          const beta = Math.sqrt(v) * Math.sqrt(6) / Math.PI, mu = m - 0.5772156649 * beta;
+          p = beta > 0 ? 1 - Math.exp(-Math.exp(-(obs - mu) / beta)) : 1;
+          p = Math.min(1, Math.max(p, 1e-12));
+        } else p = pFrom(nul, obs, 'upper');
+        return { stat: obs, statName: 'ζ peak', p, nullDist: nul, curve: zc, at: a + zc.at * (b - a) };
+      }
+    },
+    isi: {
+      name: 'ISI-resampling null', status: 'Exploratory', kind: 'detect',
+      blurb: 'Build fake spike trains by shuffling the cell’s own inter-spike intervals, so bursts and regularity are kept but the link to the event is lost. Compare the real response − baseline rate with the fakes.',
+      run(sim, o) {
+        const rng = makeRng(o.seed ^ 0x15), W = o.W;
+        const db = W.base[1] - W.base[0], dp = W.resp[1] - W.resp[0];
+        const f = (trs) => { let kb = 0, kp = 0; for (const tr of trs) { kb += countIn(tr, W.base[0], W.base[1]); kp += countIn(tr, W.resp[0], W.resp[1]); } return (kp / dp - kb / db) / trs.length; };
+        const isis = [];
+        for (let i = 1; i < sim.spikes.length; i++) isis.push(sim.spikes[i] - sim.spikes[i - 1]);
+        const cumIsi = new Float64Array(isis.length); { let c = 0; for (let i = 0; i < isis.length; i++) { c += isis[i]; cumIsi[i] = c; } }
+        const obs = f(sim.trials);
+        if (isis.length < 3) return { stat: obs, statName: 'Δ rate', p: 1, note: 'Fewer than 3 intervals: the test cannot run (counted as not significant).', nullDist: new Float64Array(0) };
+        const nul = new Float64Array(o.nShuf);
+        for (let s = 0; s < o.nShuf; s++) nul[s] = f(isiFakeTrials(sim.trials.length, isis, cumIsi, rng, o.isiStart));
+        return { stat: obs, statName: 'Δ rate (spikes/s)', p: pFrom(nul, obs, 'rank2'), nullDist: nul, direction: obs >= 0 ? 'up' : 'down' };
+      }
+    },
+    counts: {
+      name: 'Per-trial count tests', status: 'Reliability rule, not a detection', kind: 'reliability',
+      blurb: 'Test each trial on its own: is its response count unusually high for the baseline rate? The cell is called responsive when at least the set share of trials pass (and never fewer than 2 trials). There is no correction for the number of trials.',
+      run(sim, o) {
+        const W = o.W, db = W.base[1] - W.base[0], dp = W.resp[1] - W.resp[0];
+        const base = sim.trials.map((tr) => countIn(tr, W.base[0], W.base[1]));
+        const resp = sim.trials.map((tr) => countIn(tr, W.resp[0], W.resp[1]));
+        const mb = base.reduce((a, b) => a + b, 0) / base.length;
+        let vb = 0; for (const x of base) vb += (x - mb) * (x - mb); vb /= Math.max(1, base.length - 1);
+        const mu = (mb / db) * dp;
+        const r = vb > mb && mb > 0 ? (mb * mb) / (vb - mb) : Infinity;
+        const pt = resp.map((k) => o.countFamily === 'nb' ? nbUpper(k, mu, r) : poisUpper(k, mu));
+        const nPass = pt.filter((p) => p < o.alpha).length;
+        const need = passNeed(pt.length, o.passPct);
+        return { stat: nPass, statName: 'trials passing', p: null, called: nPass >= need, need, perTrial: pt, note: nPass + ' of ' + pt.length + ' trials pass at α = ' + o.alpha + ' (need ' + need + ')' };
+      }
+    },
+    t4: {
+      name: 'T4 phase signed-rank', status: 'Per-trial phase test', kind: 'detect',
+      blurb: 'For each trial: the rate in each phase of the response window (onset = first quarter, sustained = middle half, offset = last quarter, plus an optional post window) minus that same trial’s rate in a pre-window before the event (default 2 s, −2.2 to −0.2 s). A signed-rank test per phase asks whether the differences lean one way, and BH corrects across the phases. Every trial uses the response-window length. scipy’s signed-rank test assumes the differences are symmetric with no response; with a short pre-window and a sparse cell they are not, so the default here gets p from a shift null instead (switch under Test settings).',
+      run(sim, o) {
+        const r = runT4(sim, o, o.t4P);
+        const b = r.best >= 0 ? r.phases[r.best] : null;
+        const notes = [];
+        if (!r.nTested) notes.push('No phase has ≥ 3 trials with a non-zero difference, so nothing was tested (counted as not significant)');
+        else if (o.t4P === 'exact') { const mMax = Math.max(...r.phases.filter((x) => x.tested).map((x) => x.m)); if (Math.pow(2, 1 - mMax) > o.alpha) notes.push('With at most ' + mMax + ' non-zero trials the exact test cannot reach α = ' + o.alpha); }
+        if (b) notes.push('Best phase: ' + b.lab + ' (p ' + b.how + ')');
+        const resp = trialResponsiveness(sim, o, r, o.respNull);
+        return { stat: b ? b.med : 0, statName: 'median Δ rate' + (b ? ' (' + b.lab + ')' : ''), p: r.p, how: b ? b.how : '—', t4: r, resp, note: notes.join('. '), direction: b ? (b.med >= 0 ? 'up' : 'down') : null };
+      }
+    },
+    t4pre: {
+      name: 'T4-pre', status: 'Per-trial pre-window test', kind: 'detect',
+      blurb: 'For each trial: the pre-window rate minus the rate over the response window (the three phases together). A signed-rank test across trials. The original version averages the three phase rates equally, which gives the middle half the same weight as each quarter; the fixed version uses the rate over the whole window.',
+      run(sim, o) {
+        const r = runT4pre(sim, o, o.t4P, o.t4preW);
+        const note = r.p === null ? 'Fewer than 3 trials with a non-zero difference: not tested (counted as not significant)' : 'p ' + r.s.how;
+        return { stat: median(r.d), statName: 'median (pre − response)', p: r.p === null ? 1 : r.p, how: r.s.how, t4pre: r, note, direction: median(r.d) <= 0 ? 'up' : 'down' };
+      }
+    },
+    t4or_pipe: {
+      name: 'T4 or T4-pre (either passes)', status: 'Uncorrected OR of two tests', kind: 'detect',
+      blurb: 'A combined call for this family: significant if T4 passes, or T4-pre passes, or T4’s best phase sits between α and 0.10 while the trial rates drift over the session (Spearman p < 0.01 and |ρ| > 0.35). Each part runs at α with no correction for trying several. Run in the original way: p as scipy 1.16 gives it (normal approximation above 13 trials when there are ties or zeros), phase rates averaged equally.',
+      run(sim, o) {
+        const a = runT4(sim, o, 'scipy'), b = runT4pre(sim, o, 'scipy', 'equal');
+        const pre = a.t.pre, gap = a.t.gap, post = a.t.post;
+        const tr = sim.trials.map((x) => (countIn(x, -gap - pre, -gap) + countIn(x, 0, a.t.D + post)) / (pre + a.t.D + post)), sp = spearman(tr);
+        const drift = isFinite(sp.p) && sp.p < 0.01 && Math.abs(sp.rho) > 0.35;
+        const c4 = a.p <= o.alpha && a.nTested > 0, cPre = b.p !== null && b.p < o.alpha, cBord = drift && a.nTested > 0 && a.p > o.alpha && a.p < 0.10;
+        const called = c4 || cPre || cBord;
+        const parts = ['T4 best phase p = ' + fmtPe(a.p) + (c4 ? ' ✓' : ''), 'T4-pre p = ' + (b.p === null ? 'not tested' : fmtPe(b.p) + (cPre ? ' ✓' : '')), 'drift ' + (drift ? 'flagged (ρ = ' + sp.rho.toFixed(2) + ')' : 'not flagged') + (cBord ? ', borderline rule ✓' : '')];
+        return { stat: called ? 1 : 0, statName: 'parts passing', p: null, called, parts: { a, b, sp, drift, c4, cPre, cBord, trialRates: tr }, note: parts.join('; ') };
+      }
+    },
+    t4or_fix: {
+      name: 'T4 + T4-pre, one BH family (fixed)', status: 'Single BH family', kind: 'detect',
+      blurb: 'The same two tests, fixed: p values come from a shift null of the same signed-rank statistic (so unequal window lengths in sparse cells cannot fake a response), every phase p and the T4-pre p go into one BH family so trying several tests is paid for, the T4-pre response rate is weighted by time, and there is no p < 0.10 borderline rule.',
+      run(sim, o) {
+        const a = runT4(sim, o, 'shift'), b = runT4pre(sim, o, 'shift', 'time');
+        const raw = a.phases.map((x) => x.raw).concat([b.p]), adj = bhAdjust(raw), fin = adj.filter((x) => x !== null);
+        const p = fin.length ? Math.min(...fin) : 1;
+        const labels = a.phases.map((x) => x.lab).concat(['T4-pre']);
+        return { stat: p, statName: 'smallest BH p', p, how: 'shift null', parts: { a, b, raw, adj, labels }, note: 'One BH family of ' + fin.length + ' tests' };
+      }
+    },
+    mad: {
+      name: 'Mean over trials, window − event', status: 'Naive baseline', kind: 'detect',
+      blurb: 'For each trial take |response rate − baseline rate| and average over trials. Because the value is never negative, only the upper tail counts, and any extra variability looks like a response.',
+      run(sim, o) {
+        const rng = makeRng(o.seed ^ 0x77), W = o.W;
+        const f = (tr) => madStat(tr, W);
+        const obs = f(sim.trials);
+        const nul = nullShift(sim, rng, o.nShuf, 2, f);
+        return { stat: obs, statName: 'mean |Δ rate|', p: pFrom(nul, obs, 'upper'), nullDist: nul };
+      }
+    }
+  };
+
+  const DEFAULT_OPTS = {
+    seed: 11, W: { base: [-2, -0.25], resp: [0, 2] }, shapeWin: [0, 3], binS: 0.01,
+    nShuf: 300, shiftSet: 'skip', jitterS: 2, zetaP: 'quantile', isiStart: 'stationary',
+    countFamily: 'poisson', alpha: 0.05, passPct: 0, 
+    t4Pre: 2.0, t4PreGap: 0.2, t4Post: 0, t4P: 'shift', t4preW: 'time', respNull: 'baseline', bmData: 'trial',
+    shiftNull: 'auto'      // 'auto' (same as 'session') | 'trial' | 'session'
+  };
+
+  // ---------------- assumption checks ----------------
+  // Measured on THIS cell's spikes. Each check returns
+  // { id, label, ok (true / false), measured, why }. A test gets a red flag when one
+  // of its checks has ok === false. Thresholds are this page's choices; each check is its own test,
+  // so a test with several checks can fail one by chance (about 1 in 20 per check at p < 0.05).
+  function acSpearman2(x, y) { // rank correlation of x with y, two-sided p from the t approximation (as scipy)
+    const n = x.length; if (n < 4) return { rho: NaN, p: NaN };
+    const rx = avgRanks(x).r, ry = avgRanks(y).r, mx = (n + 1) / 2;
+    let sxy = 0, sxx = 0, syy = 0; for (let i = 0; i < n; i++) { sxy += (rx[i] - mx) * (ry[i] - mx); sxx += (rx[i] - mx) ** 2; syy += (ry[i] - mx) ** 2; }
+    if (sxx === 0 || syy === 0) return { rho: NaN, p: NaN };
+    const rho = sxy / Math.sqrt(sxx * syy), df = n - 2, t2 = rho * rho * df / Math.max(1e-15, 1 - rho * rho);
+    return { rho, p: Math.abs(rho) >= 1 ? 0 : ibetaE(df / (df + t2), df / 2, 0.5) };
+  }
+  const acFmt = (p) => !isFinite(p) ? '—' : p === 0 ? '< 1e-300' : p < 0.001 ? p.toExponential(1) : p.toFixed(3);
+  const acRho = (s) => 'ρ = ' + (isFinite(s.rho) ? s.rho.toFixed(2) : '—') + ', p = ' + acFmt(s.p);
+  const binomUpper = (c, R, a) => c <= 0 ? 1 : ibetaE(a, c, R - c + 1); // P(X >= c), X ~ Binomial(R, a)
+  // Which tests get their p from shifting the cell's own spikes (and so use the shift-null segment).
+  const AC_SHIFT = new Set(['bm_shift', 'rate_ratio', 'shape', 'shape2', 'mad', 't4or_fix']);
+  const acUsesShift = (key, o) => (AC_SHIFT.has(key) && !(key === 'shape' && o.shiftSet === 'window')) || ((key === 't4' || key === 't4pre') && o.t4P === 'shift');
+  // How far from an onset a test reads spikes: the −3 to 3 s trial window, the −6 to 6 s segment of the per-trial
+  // shift null, or the window plus the onset jitter for ZETA.
+  function acReach(key, sim, o) {
+    if (key === 'zeta') return T1 + o.jitterS;
+    if (acUsesShift(key, o) && sim._shiftMode === 'trial') return SEG_H;
+    return T1;
+  }
+  // The test run on this cell's own spikes at random times (no response there): each repeat moves every
+  // onset by one random offset (as the shift null does), drops moved onsets whose spikes read by the test (acReach)
+  // would include a real event's 0–3 s, and runs the test as set. The share of repeats called significant is the
+  // test's false-alarm rate on this cell; a test whose p is right gives about alpha.
+  function acSelfFA(key, sim, o, R) {
+    R = R || 200;
+    const rng = makeRng(0x5E1F ^ (o.seed || 0)), on = sim.onsets.slice().sort((a, b) => a - b), L = sim.L, reach = acReach(key, sim, o);
+    let called = 0, runs = 0, kept = 0;
+    for (let r = 0; r < R; r++) {
+      const s = drawShift(rng, 6, L), fo = [];
+      for (const t of sim.onsets) {
+        const u = ((t + s) % L + L) % L; if (u - reach < 0 || u + reach > L) continue;
+        // a real event at e puts its 0–3 s response at [e, e + 3); skip u when that overlaps [u − reach, u + reach)
+        const k = lowerBound(on, u - reach - (T1 - 0)); if (k < on.length && on[k] < u + reach) continue;
+        fo.push(u);
+      }
+      if (fo.length < 3) continue;
+      fo.sort((a, b) => a - b);
+      const fake = { trials: fo.map((u) => extract(sim.spikes, u)), onsets: fo, spikes: sim.spikes, L, _shiftMode: sim._shiftMode };
+      const res = METHODS[key].run(fake, o), c = res.called !== undefined ? res.called : (res.p !== null && res.p < o.alpha);
+      if (c) called++; runs++; kept += fo.length;
+    }
+    return { fa: runs ? 100 * called / runs : NaN, called, runs, nMean: runs ? kept / runs : 0, reach };
+  }
+  function acSelfCheck(key, sim, o, why) {
+    const f = acSelfFA(key, sim, o), pb = f.runs ? binomUpper(f.called, f.runs, o.alpha) : NaN;
+    return { id: 'self', label: 'False alarms on this cell’s own spikes stay near α', ok: !(isFinite(pb) && pb < 0.01),
+      measured: 'run at ' + f.runs + ' sets of random times (about ' + Math.round(f.nMean) + ' of ' + sim.onsets.length + ' trials each, no real event’s 0–3 s within ' + f.reach + ' s): called ' + f.called + ' of ' + f.runs + ' (' + (isFinite(f.fa) ? f.fa.toFixed(1) : '—') + '%) at α = ' + fmtA(o.alpha) + '; chance of that many or more if the rate were α: ' + acFmt(pb) + ' (flag below 0.01)',
+      why: why + ' The repeats share this cell’s spikes, so they are not fully independent and the 0.01 cut is approximate.' };
+  }
+  const fmtA = (a) => a >= 0.001 ? String(+a.toPrecision(3)) : a.toExponential(2);
+  // Trial differences: no trend with trial number (identically distributed) and no link between neighbouring
+  // trials (independent). `series` is a list of [name, differences]; with several, the smallest p is reported.
+  function acIid(series, src) {
+    const worst = (fn) => { let b = null; for (const [lab, d] of series) { const s = fn(d); if (isFinite(s.p) && (!b || s.p < b.s.p)) b = { lab, s }; } return b; };
+    const tr = worst((d) => spearman(d)), sr = worst((d) => d.length >= 5 ? acSpearman2(d.slice(0, -1), d.slice(1)) : { rho: NaN, p: NaN });
+    const many = series.length > 1, cut = 0.05 / series.length, at = (b) => b && many ? ' (' + b.lab + ', the smallest p of ' + series.length + ')' : '';
+    const flagTxt = many ? ' (flag p < 0.05 ÷ ' + series.length + ' = ' + cut.toFixed(4) + ', Bonferroni over the series)' : ' (flag p < 0.05)';
+    return [
+      { id: 'trend', label: 'Trial differences alike across the session (no trend)', ok: !(tr && tr.s.p < cut),
+        measured: 'differences vs trial number: ' + (tr ? acRho(tr.s) + at(tr) : 'ρ = —') + flagTxt,
+        why: 'The signed-rank test assumes the differences are independent and identically distributed (' + src + '). A trend with trial number (habituation, drift) breaks “identically distributed”.' },
+      { id: 'serial', label: 'Neighbouring trials independent', ok: !(sr && sr.s.p < cut),
+        measured: 'each trial’s difference vs the next one’s: ' + (sr ? acRho(sr.s) + at(sr) : 'ρ = —') + flagTxt,
+        why: 'The signed-rank test assumes the differences are independent (' + src + '). When neighbouring trials move together (bouts, slow state changes), the test counts more independent evidence than there is and its p is too small.' }
+    ];
+  }
+  function acDispersion(k) { // index of dispersion of counts and its upper-tail chi-square p (more variable than Poisson)
+    const n = k.length, m = k.reduce((s, v) => s + v, 0) / Math.max(1, n); let X = 0; for (const v of k) X += (v - m) * (v - m); X = m > 0 ? X / m : 0;
+    return { D: n > 1 && m > 0 ? X / (n - 1) : NaN, p: n > 1 && m > 0 ? gammaQ((n - 1) / 2, X / 2) : NaN };
+  }
+  function acDrift(kb, db, why) {
+    const d = spearman(kb.map((k) => k / db));
+    return { id: 'drift', label: 'No drift across the session', ok: !(isFinite(d.p) && d.p < 0.01),
+      measured: 'baseline rate vs trial number: ' + acRho(d) + ' (flag p < 0.01)', why };
+  }
+  // Every test: are the events far enough apart that one trial's spikes do not hold another event's response?
+  function acSpacing(key, sim, o) {
+    const on = sim.onsets.slice().sort((a, b) => a - b), reach = acReach(key, sim, o), back = reach + (T1 - 0); let close = 0;
+    // close: an earlier event less than reach + 3 s before (its 0–3 s response reaches this trial), or a later one less than reach after
+    for (let i = 0; i < on.length; i++) if ((i > 0 && on[i] - on[i - 1] < back) || (i + 1 < on.length && on[i + 1] - on[i] < reach)) close++;
+    const share = on.length ? close / on.length : 0;
+    return { id: 'spacing', label: 'Events far enough apart', ok: !(share > 0.1),
+      measured: close + ' of ' + on.length + ' trials (' + (100 * share).toFixed(0) + '%) have an earlier event of this behaviour less than ' + back + ' s before or a later one less than ' + reach + ' s after (flag above 10%)',
+      why: 'Every test here treats trials as separate. When events come in bouts, one trial’s baseline holds the previous event’s response and neighbouring trials share spikes' + (reach > T1 ? (key === 'zeta' ? ' (ZETA jitters each onset by up to ' + o.jitterS + ' s, so it reads spikes up to ' + reach + ' s away)' : ' (the per-trial shift null rotates each −6 to 6 s segment, so it reads spikes up to 6 s away)') : '') + '.' };
+  }
+  // Tests whose p comes from shuffles: can the smallest possible p reach the α in use?
+  function acShuffles(key, o) {
+    const shuf = acUsesShift(key, o) || key === 'isi' || (key === 'zeta' && o.zetaP !== 'gumbel');
+    if (!shuf) return null;
+    const minP = key === 'isi' ? Math.min(1, 2 / (o.nShuf + 1)) : 1 / (o.nShuf + 1);
+    const how = key === 'zeta' ? 'jittering the onsets' : key === 'isi' ? 'shuffling the cell’s intervals' : 'shifting the cell’s own spikes';
+    const assumes = key === 'zeta' ? 'It assumes the firing rate is steady within a few seconds of each onset when there is no response.'
+      : key === 'isi' ? 'It assumes the intervals are independent of each other and the rate is steady over the session (checked below).'
+      : 'It assumes the firing is steady over the stretch the shift moves through (the trial’s −6 to 6 s segment, or the whole session), so that shifted spikes are a fair stand-in for no response.';
+    return { id: 'shuf', label: 'Enough shuffles to reach α', ok: minP <= o.alpha,
+      measured: o.nShuf + ' shuffles: smallest possible p = ' + fmtA(minP) + ' vs α = ' + fmtA(o.alpha) + (minP > o.alpha ? ': this test can never be called' : ''),
+      why: 'The p comes from ' + how + ', so the null keeps this cell’s own spike-count distribution and burst pattern. ' + assumes + ' Its p cannot go below ' + (key === 'isi' ? '2 ÷ (shuffles + 1)' : '1 ÷ (shuffles + 1)') + '. This page does not run the false-alarm-on-own-spikes check for this test (it would take 200 × the shuffles).' };
+  }
+  function acBaseRate(sim, W) { let k = 0; for (const tr of sim.trials) k += countIn(tr, W.base[0], W.base[1]); return k / (sim.trials.length * (W.base[1] - W.base[0])); }
+  function checkAssumptions(key, sim, opts) {
+    const o = Object.assign({}, DEFAULT_OPTS, opts); o.W = Object.assign({}, DEFAULT_OPTS.W, opts && opts.W);
+    sim._shiftMode = shiftModeFor(sim, o);
+    const W = o.W, db = W.base[1] - W.base[0], dp = W.resp[1] - W.resp[0], n = sim.trials.length;
+    const kb = sim.trials.map((tr) => countIn(tr, W.base[0], W.base[1])), kr = sim.trials.map((tr) => countIn(tr, W.resp[0], W.resp[1]));
+    const out = [acSpacing(key, sim, o)];
+    const sh = acShuffles(key, o); if (sh) out.push(sh);
+    if (key === 'bm_shift' || key === 'rate_ratio') {
+      const r = METHODS[key].run(sim, o), nul = Array.from(r.nullDist || []), obs = r.centered;
+      if (nul.length > 2 && isFinite(obs)) {
+        const med = median(nul), m = nul.reduce((a, v) => a + v, 0) / nul.length; let v = 0; for (const x of nul) v += (x - m) * (x - m);
+        const sd = Math.sqrt(v / (nul.length - 1)), z = sd > 0 ? Math.abs(med) / sd : 0;
+        let hi = 0, lo = 0; for (const x of nul) { if (x >= obs - 1e-12) hi++; if (x <= obs + 1e-12) lo++; }
+        const pTail = Math.min(1, 2 * (1 + Math.min(hi, lo)) / (nul.length + 1));
+        out.push({ id: 'centre', label: 'Shift null centred on no change', ok: !(z > 0.5),
+          measured: 'null median ' + med.toFixed(3) + ', SD ' + sd.toFixed(3) + ' (median = ' + z.toFixed(2) + ' SD from 0; flag above 0.5). p as run, by |value|: ' + acFmt(r.p) + '; by doubling the smaller tail: ' + acFmt(pTail),
+          why: 'This test is two-sided by size: it counts shifts whose value is at least as far from 0 as the real one. That is right only when the shifted values centre on 0. When the shifted spikes still carry part of the cell’s own response, or the windows differ, the null sits off 0 and that p is wrong in both directions. Doubling the smaller tail does not need a centred null; this page shows it here but does not change the test.' });
+      }
+    }
+    const SYM_WHY = (w) => 'The signed-rank p assumes the per-trial differences are symmetric around 0 when the cell does not respond (scipy.stats.wilcoxon). With few spikes and ' + w + ' of different length the differences are lopsided, so a cell can look responsive at times with no event.';
+    const nz = (d) => d.filter((v) => v !== 0).length >= T4_MIN;
+    if (key === 'wilcoxon') {
+      out.push(acSelfCheck(key, sim, o, SYM_WHY('baseline and response windows')));
+      out.push(...acIid([['differences', kr.map((k, i) => k / dp - kb[i] / db)]], 'scipy.stats.wilcoxon'));
+    } else if (key === 't4' || key === 't4pre' || key === 't4or_pipe') {
+      const pm = key === 't4or_pipe' ? 'scipy' : o.t4P;
+      if (pm !== 'shift') {
+        const t = t4Data(sim, o), series = [];
+        if (key !== 't4pre') t.ph.forEach(([lab], k) => { if (nz(t.diffs[k])) series.push([lab + ' phase', t.diffs[k]]); });
+        if (key !== 't4') { const b = runT4pre(sim, o, 'scipy', key === 't4or_pipe' ? 'equal' : o.t4preW); if (nz(b.d)) series.push(['T4-pre', b.d]); }
+        out.push(acSelfCheck(key, sim, o, SYM_WHY(key === 't4pre' ? 'the pre-window and the response window' : 'the pre-window and the phases') + (key === 't4or_pipe' ? ' The OR of several parts, each at α with no correction, adds false alarms on top.' : '')));
+        if (series.length) out.push(...acIid(series, 'scipy.stats.wilcoxon'));
+      }
+    } else if (key === 'bm_full') {
+      const x = kb.map((k) => k / db), y = kr.map((k) => k / dp), s = acSpearman2(x, y);
+      out.push({ id: 'indep', label: 'Baseline and response values independent', ok: !(isFinite(s.p) && s.p < 0.05),
+        measured: 'per-trial baseline vs response rate: ' + acRho(s) + ' (flag p < 0.05)',
+        why: 'Brunner–Munzel compares two independent samples (scipy.stats.brunnermunzel). Here both come from the same trials. When a trial’s two values move together (ρ > 0) the p is too large and responses are missed; when they move apart (ρ < 0) the p is too small and null cells are called.' });
+      out.push(acSelfCheck(key, sim, o, 'Under no response the test assumes baseline and response values come from the same distribution and are independent. With few spikes and windows of different length, rates sit on different grids (1 spike in ' + db.toFixed(2) + ' s is a higher rate than 1 spike in ' + dp.toFixed(2) + ' s), so the groups can differ with no response.'));
+      const nx = o.bmData === 'bins' ? Math.max(1, Math.round(db / o.binS)) * n : n, ny = o.bmData === 'bins' ? Math.max(1, Math.round(dp / o.binS)) * n : n;
+      out.push({ id: 'size', label: 'Enough values for the t approximation', ok: Math.min(nx, ny) >= 10, measured: nx + ' baseline and ' + ny + ' response values (flag below 10 in either)',
+        why: 'scipy.stats.brunnermunzel: with fewer than 10 values a permuted Brunner–Munzel test is better than the t distribution.' });
+      if (o.bmData === 'bins') {
+        const nb = Math.max(1, Math.round(db / o.binS)), a = [], b = [];
+        for (const tr of sim.trials) { const h = new Uint8Array(nb); for (const t of tr) if (t >= W.base[0] && t < W.base[1]) h[Math.min(nb - 1, Math.floor((t - W.base[0]) / o.binS))] = 1; for (let i = 1; i < nb; i++) { a.push(h[i - 1]); b.push(h[i]); } }
+        const m1 = a.reduce((s, v) => s + v, 0) / Math.max(1, a.length), m2 = b.reduce((s, v) => s + v, 0) / Math.max(1, b.length);
+        let sab = 0, saa = 0, sbb = 0; for (let i = 0; i < a.length; i++) { sab += (a[i] - m1) * (b[i] - m2); saa += (a[i] - m1) ** 2; sbb += (b[i] - m2) ** 2; }
+        const r = saa > 0 && sbb > 0 ? sab / Math.sqrt(saa * sbb) : NaN, p = isFinite(r) ? 2 * (1 - normCdf(Math.abs(r) * Math.sqrt(a.length))) : NaN;
+        out.push({ id: 'bins', label: 'Neighbouring bins independent', ok: !(isFinite(p) && p < 0.05), measured: 'lag-1 correlation of baseline bins: r = ' + (isFinite(r) ? r.toFixed(3) : '—') + ', p = ' + acFmt(p) + ' (flag p < 0.05)',
+          why: 'With binary bins each bin is one value, so the test assumes bins are independent. Bursts or a refractory period make neighbouring bins depend on each other.' });
+        const dd = acDispersion(kb);
+        out.push({ id: 'trialbins', label: 'Bins of one trial not tied to that trial', ok: !(isFinite(dd.p) && dd.p < 0.05),
+          measured: 'baseline counts per trial: dispersion index ' + (isFinite(dd.D) ? dd.D.toFixed(2) : '—') + ' (1 if every trial had the same rate), χ² p = ' + acFmt(dd.p) + ' (flag p < 0.05)',
+          why: 'Counts that vary more than Poisson mean bins are not independent: either the rate differs between trials (bins of one trial share it) or spikes come in bursts within a trial. Either way the test counts each bin as independent, so its p is too small. (The independence check above uses one rate per trial, not the bins.)' });
+      }
+    } else if (key === 'counts') {
+      if (o.countFamily !== 'nb') {
+        const dd = acDispersion(kb);
+        out.push({ id: 'pois', label: 'Baseline counts no more variable than Poisson', ok: !(isFinite(dd.p) && dd.p < 0.05),
+          measured: 'dispersion index ' + (isFinite(dd.D) ? dd.D.toFixed(2) : '—') + ' (Poisson = 1), upper-tail χ² p = ' + acFmt(dd.p) + ' (flag p < 0.05)',
+          why: 'The Poisson law assumes the count variance equals the mean. Counts that vary more make single trials pass too often; the negative-binomial law allows for it. Counts that vary less (regular firing) only make the Poisson test stricter, so they are not flagged.' });
+      }
+      out.push(acSelfCheck(key, sim, o, 'The rule calls a cell when at least ' + passNeed(n, o.passPct) + ' of ' + n + ' trials pass at α, with no correction for the number of trials. At random times with no event, trials still pass by chance, more often with more trials and with counts that vary more than the law assumes.'));
+      out.push(acDrift(kb, db, 'Each trial’s response count is compared with the baseline rate averaged over the whole session. A drifting rate makes trials from the high-rate part pass with no response, whichever count law is used.'));
+    } else if (key === 'isi') {
+      const isi = []; for (let i = 1; i < sim.spikes.length; i++) isi.push(sim.spikes[i] - sim.spikes[i - 1]);
+      const s = isi.length >= 4 ? acSpearman2(isi.slice(0, -1), isi.slice(1)) : { rho: NaN, p: NaN };
+      out.push({ id: 'renew', label: 'Intervals independent of each other', ok: !(isFinite(s.p) && s.p < 0.05 && Math.abs(s.rho) >= 0.1),
+        measured: 'neighbouring intervals (' + isi.length.toLocaleString('en') + '): ' + acRho(s) + ' (flag p < 0.05 and |ρ| ≥ 0.1)',
+        why: 'Shuffling intervals keeps their distribution but makes them independent (a renewal train). If neighbouring intervals are correlated, as with slow rate changes, the fakes are too regular and the p is too small. With many thousands of intervals a tiny ρ is significant, so a ρ below 0.1 is not flagged; the next check measures the effect that matters.' });
+      if (isi.length >= 3) {
+        const cum = new Float64Array(isi.length); { let c = 0; for (let i = 0; i < isi.length; i++) { c += isi[i]; cum[i] = c; } }
+        const varOf = (k) => { const m = k.reduce((a, v) => a + v, 0) / k.length; let v = 0; for (const x of k) v += (x - m) * (x - m); return { m, v: v / Math.max(1, k.length - 1) }; };
+        const real = varOf(kb), R = 200, rng = makeRng((o.seed ^ 0x1C) >>> 0), fv = new Float64Array(R); let ge = 0;
+        for (let r = 0; r < R; r++) { const q = varOf(isiFakeTrials(n, isi, cum, rng, o.isiStart).map((tr) => countIn(tr, W.base[0], W.base[1]))); fv[r] = q.m > 0 ? q.v / q.m : NaN; }
+        const fano = real.m > 0 ? real.v / real.m : NaN, fMed = median(Array.from(fv));
+        for (const x of fv) if (isFinite(x) && isFinite(fano) && x >= fano - 1e-12) ge++;
+        const p = isFinite(fano) ? (1 + ge) / (R + 1) : NaN;
+        out.push({ id: 'isivar', label: 'Fakes vary across trials as much as the real counts', ok: !(isFinite(p) && p < 0.05),
+          measured: 'baseline-count Fano factor: real ' + (isFinite(fano) ? fano.toFixed(2) : '—') + ', fakes median ' + (isFinite(fMed) ? fMed.toFixed(2) : '—') + '; share of ' + R + ' fake sets at least as variable: p = ' + acFmt(p) + ' (flag p < 0.05)',
+          why: 'The p compares the real response − baseline rate with fakes built from shuffled intervals. If the real counts vary more from trial to trial than the fakes do, the fakes are too narrow and the p is too small.' });
+      }
+      out.push(acDrift(kb, db, 'The shuffled intervals come from the whole session, so the fakes have one average rate. A drifting rate breaks this.'));
+    }
+    return out;
+  }
+  function shiftModeFor(sim, o) { return o.shiftNull === 'trial' || o.shiftNull === 'session' ? o.shiftNull : 'session'; }
+  function runMethod(key, sim, opts) {
+    const o = Object.assign({}, DEFAULT_OPTS, opts);
+    o.W = Object.assign({}, DEFAULT_OPTS.W, opts && opts.W);
+    sim._shiftMode = shiftModeFor(sim, o);
+    const r = METHODS[key].run(sim, o);
+    r.key = key; r.alpha = o.alpha;
+    if (r.called === undefined) r.called = r.p !== null && r.p < o.alpha;
+    return r;
+  }
+
+  root.SpikeLab = { lgam, brunnerMunzel, cvm2, makeRng, simulate, drawLaw, lawPdf, lawCdf, lawPar, PhiN, isiLaw, runMethod, checkAssumptions, passNeed, METHODS, DEFAULTS, DEFAULT_OPTS, T0, T1, DT, countIn, shiftModeFor };
+})(typeof self !== 'undefined' ? self : this);
+</script>
+<script id="worker-src" type="text/plain">
+self.onmessage = function (ev) {
+  var d = ev.data;
+  if (d.type === 'sweep') { // one cell, several response-window ends
+    var sim0 = SpikeLab.simulate(d.p), out = [];
+    for (var a = 0; a < d.wins.length; a++) {
+      var w = d.wins[a], row = { w: w.w, derived: !!w.derived, res: {} };
+      var oo = Object.assign({}, d.o, { W: { base: d.o.W.base.slice(), resp: [0, w.w] }, shapeWin: [0, w.w] });
+      for (var j = 0; j < d.methods.length; j++) {
+        var k = d.methods[j];
+        var r = SpikeLab.runMethod(k, sim0, Object.assign({}, oo, k === 'counts' ? { alpha: d.alphaRaw } : {}));
+        row.res[k] = { p: r.p, called: r.called, stat: r.stat, need: r.need };
+      }
+      out.push(row);
+      self.postMessage({ type: 'progress', done: a + 1, N: d.wins.length });
+    }
+    self.postMessage({ type: 'sweepDone', rows: out });
+    return;
+  }
+  var p = d.p, o = d.o, N = d.N, methods = d.methods, counts = {};
+  methods.forEach(function (k) { counts[k] = 0; });
+  var base = (p.seed || 1) >>> 0;
+  for (var i = 0; i < N; i++) {
+    var sim = SpikeLab.simulate(Object.assign({}, p, { seed: (base * 7919 + (i + 1) * 104729) >>> 0 }));
+    for (var j = 0; j < methods.length; j++) {
+      var r = SpikeLab.runMethod(methods[j], sim, Object.assign({}, o, { seed: ((o.seed || 1) + i * 31) >>> 0 }));
+      if (r.called) counts[methods[j]]++;
+    }
+    if ((i + 1) % 5 === 0 || i === N - 1) self.postMessage({ type: 'progress', done: i + 1, counts: counts });
+  }
+  self.postMessage({ type: 'done', done: N, counts: counts });
+};
+</script>
+<script>
+(function () {
+  'use strict';
+  const SL = window.SpikeLab;
+  const $ = (id) => document.getElementById(id);
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem('spikelab:' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem('spikelab:' + k, JSON.stringify(v)); } catch (e) { /* storage blocked */ } }
+  };
+
+  // ---------------- state ----------------
+  const LAWNAME = { exponential: 'exponential', gamma: 'gamma', lognormal: 'log-normal', invgauss: 'inverse Gaussian', invgamma: 'inverse gamma', gaussian: 'Gaussian (cut at 0)', powerlaw: 'power law' };
+  const NARROW = window.matchMedia && window.matchMedia('(max-width: 860px)').matches;
+  const PRESETS = {
+    default: { label: 'Opening cell', p: {} },
+    sparse: { label: 'Sparse cell', p: { baseRate: 0.5, train: 'poisson', nTrials: 12, reliability: 100, size: 3 } },
+    strong: { label: 'Strong excitatory', p: { baseRate: 5, train: 'poisson', nTrials: 30, reliability: 100, size: 4, durationS: 0.5 } },
+    suppress: { label: 'Weak suppression', p: { direction: 'inh', baseRate: 0.5, train: 'poisson', nTrials: 12, reliability: 100, suppressPct: 80, durationS: 2, latencyMs: 0 } },
+    timing: { label: 'Timing only', p: { baseRate: 8, train: 'poisson', nTrials: 30, reliability: 100, shape: 'timing', size: 4, durationS: 1, latencyMs: 0, jitterMs: 10 } },
+    silent: { label: 'Silent cell', p: { baseRate: 0.1, train: 'poisson', nTrials: 20, reliability: 100, size: 3 } },
+    drift: { label: 'Drifting non-responder', p: { baseRate: 3, train: 'gamma', gammaK: 0.5, nTrials: 40, responds: false, slowPct: 50, trialGainCV: 0.5 } },
+    nbcounts: { label: 'Negative-binomial counts', p: { baseRate: 3, train: 'poisson', nTrials: 40, responds: false, winCV: 0.8, rateLaw: 'gamma' } },
+    heavy: { label: 'Heavy-tailed intervals', p: { baseRate: 3, train: 'powerlaw', isiCV: 1.5, nTrials: 40, reliability: 50, size: 3 } }
+  };
+  let cell = Object.assign({}, SL.DEFAULTS, store.get('cell', {}));
+  let opts = Object.assign({}, SL.DEFAULT_OPTS, store.get('opts', {}));
+  opts.W = Object.assign({}, SL.DEFAULT_OPTS.W, (store.get('opts', {}) || {}).W);
+  // saved settings without the pre-window gap get the current default once
+  if (!('t4PreGap' in (store.get('opts', {}) || {}))) { opts.t4Pre = SL.DEFAULT_OPTS.t4Pre; opts.t4PreGap = SL.DEFAULT_OPTS.t4PreGap; }
+  let bhN = store.get('bhN', 1);
+  let method = store.get('method', 'bm_shift');
+  let sim = null, results = {}, checks = {};
+  const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const METHOD_ORDER = ['wilcoxon', 't4', 't4pre', 't4or_pipe', 't4or_fix', 'bm_shift', 'bm_full', 'rate_ratio', 'shape', 'shape2', 'zeta', 'isi', 'counts', 'mad'];
+  const MCOL = { t4: '--m9', t4pre: '--m10', t4or_pipe: '--m11', t4or_fix: '--m12', bm_full: '--m13', shape2: '--m14', wilcoxon: '--m8', bm_shift: '--m2', rate_ratio: '--m1', shape: '--m3', zeta: '--m4', isi: '--m6', counts: '--m7', mad: '--m5' };
+  const MMARK = { t4: 'square', t4pre: 'diamond', t4or_pipe: 'triangle', t4or_fix: 'circle', bm_full: 'square', shape2: 'square', wilcoxon: 'square', bm_shift: 'circle', rate_ratio: 'diamond', shape: 'triangle', zeta: 'circle', isi: 'square', counts: 'diamond', mad: 'triangle' };
+
+  // ---------------- control schema ----------------
+  const CELL_SCHEMA = [
+    { group: 'Experiment', open: true, items: [
+      { k: 'nTrials', type: 'range', label: 'Trials (events)', min: 2, max: 200, step: 1, fmt: (v) => String(v) },
+      { k: 'itiMin', type: 'range', label: 'Minimum gap between events', min: 4, max: 20, step: 1, fmt: (v) => v + ' s', hint: 'Gaps are drawn between this and 10 s more. Simulated cells have no other events, so no trial is dropped for overlapping one.' }
+    ] },
+    { group: 'Response direction', open: true, items: [
+      { k: 'direction', type: 'select', label: 'Cell responds by', opts: [['exc', 'Excitation: rate goes up'], ['inh', 'Inhibition: rate goes down']], hint: 'The direction of the response, not a verified cell class.' },
+      { k: 'responds', type: 'select', label: 'Response to the stimulus', opts: [['true', 'Present'], ['false', 'None (null cell)']], bool: true }
+    ] },
+    { group: 'Baseline firing', open: true, items: [
+      { k: 'baseRate', type: 'range', label: 'Baseline rate', min: 0.1, max: 50, step: 0.1, fmt: (v) => v.toFixed(1) + ' spikes/s', log: true },
+      { k: 'train', type: 'select', label: 'Spike-interval distribution', opts: [['poisson', 'Exponential (Poisson spiking)'], ['gamma', 'Gamma (set the shape)'], ['lognormal', 'Log-normal'], ['invgauss', 'Inverse Gaussian'], ['invgamma', 'Inverse gamma'], ['gaussian', 'Gaussian (cut at 0)'], ['powerlaw', 'Power law (Pareto)'], ['refractory', 'Exponential + refractory period']], hint: 'Candidate interval laws. All are set to the same mean interval (1 / baseline rate).' },
+      { k: 'isiCV', type: 'range', label: 'Interval CV', min: 0.2, max: 3, step: 0.05, fmt: (v) => v.toFixed(2) + (v < 1 ? ' (regular)' : v > 1 ? ' (bursty)' : ''), show: (c) => ['lognormal', 'invgauss', 'invgamma', 'gaussian', 'powerlaw'].includes(c.train), hintFn: (c) => c.train === 'gaussian' ? 'Intervals cannot go below 0, so the real CV stays under about 0.7.' : c.train === 'powerlaw' || c.train === 'invgamma' ? 'Heavy tail: the real CV of a finite sample is often lower than set.' : '' },
+      { k: 'gammaK', type: 'range', label: 'Gamma shape k', min: 0.2, max: 5, step: 0.1, fmt: (v) => v.toFixed(1) + (v < 1 ? ' (bursty)' : v > 1 ? ' (regular)' : ' (= Poisson)'), show: (c) => c.train === 'gamma' },
+      { k: 'refractoryMs', type: 'range', label: 'Refractory period', min: 0, max: 5, step: 0.5, fmt: (v) => v.toFixed(1) + ' ms', show: (c) => c.train === 'refractory' }
+    ] },
+    { group: 'Response', open: true, items: [
+      { k: 'shape', type: 'select', label: 'Response shape', opts: [['step', 'Step (flat for its duration)'], ['peak', 'Fast peak, then decay'], ['timing', 'Timing only (spikes re-timed, same count)']] },
+      { k: 'size', type: 'range', label: 'Size (fold change)', min: 1, max: 10, step: 0.1, fmt: (v) => v.toFixed(1) + '×', show: (c) => c.direction === 'exc' || c.shape === 'timing' },
+      { k: 'suppressPct', type: 'range', label: 'Size (drop)', min: 0, max: 100, step: 1, fmt: (v) => '−' + v + '%', show: (c) => c.direction === 'inh' && c.shape !== 'timing' },
+      { k: 'latencyMs', type: 'range', label: 'Latency', min: 0, max: 500, step: 5, fmt: (v) => v + ' ms' },
+      { k: 'durationS', type: 'range', label: 'Duration', min: 0.01, max: 3, step: 0.01, fmt: (v) => v.toFixed(2) + ' s' },
+      { k: 'jitterMs', type: 'range', label: 'Latency jitter across trials (SD)', min: 0, max: 300, step: 5, fmt: (v) => v + ' ms' },
+      { k: 'reliability', type: 'range', label: 'Reliability (trials that respond)', min: 0, max: 100, step: 1, fmt: (v) => v + '%' }
+    ] },
+    { group: 'Trial-to-trial variability', open: false, items: [
+      { k: 'rateLaw', type: 'select', label: 'Law of the random rate changes', opts: [['gamma', 'Gamma (Poisson counts become negative binomial)'], ['lognormal', 'Log-normal'], ['invgamma', 'Inverse gamma'], ['powerlaw', 'Power law (Pareto)'], ['gaussian', 'Gaussian (cut at 0)']], hint: 'Used by the two sliders below. Random rate changes of this kind turn Poisson counts into over-dispersed counts.' },
+      { k: 'winCV', type: 'range', label: 'Rate change every 1 s of session (CV)', min: 0, max: 1.5, step: 0.05, fmt: (v) => v.toFixed(2), hint: 'A new random rate multiplier for each second, not locked to the event. Makes 1 s counts over-dispersed (Fano > 1).' },
+      { k: 'trialGainCV', type: 'range', label: 'Gain per trial (CV)', min: 0, max: 1, step: 0.05, fmt: (v) => v.toFixed(2), hint: 'Each trial window gets a random rate multiplier, so counts vary more than Poisson (Fano > 1).' },
+      { k: 'driftPct', type: 'range', label: 'Drift across the session', min: -50, max: 50, step: 5, fmt: (v) => (v > 0 ? '+' : '') + v + '%' },
+      { k: 'slowPct', type: 'range', label: 'Slow rate fluctuation (20 s timescale)', min: 0, max: 80, step: 5, fmt: (v) => v + '% SD', hint: 'Not locked to the event.' }
+    ] }
+  ];
+
+  // chance that at least k of n trials pass when each passes with probability q
+  function binomUpper(n, k, q) { if (k <= 0) return 1; if (k > n) return 0; let term = Math.pow(1 - q, n), cdf = 0; for (let i = 0; i < k; i++) { cdf += term; term *= ((n - i) / (i + 1)) * (q / (1 - q)); } return Math.max(0, 1 - cdf); }
+
+  function testSchema(m) {
+    const common = [
+      { k: 'W.resp.1', label: 'Response window end', type: 'range', min: 0.25, max: 3, step: 0.25, fmt: (v) => '0–' + v.toFixed(2) + ' s', show: () => !['shape', 'zeta', 'shape2'].includes(m) },
+      { k: 'shapeWin.1', label: 'Timing window end', type: 'range', min: 0.5, max: 3, step: 0.25, fmt: (v) => '0–' + v.toFixed(2) + ' s', show: () => ['shape', 'zeta'].includes(m) },
+      { k: 'alpha', label: 'α (significance level)', type: 'range', min: 0.001, max: 0.1, step: 0.001, fmt: (v) => v.toFixed(3) },
+      { k: 'nShuf', label: 'Shuffles / resamples', type: 'range', min: 100, max: 1000, step: 50, fmt: (v) => String(v), show: () => m !== 'wilcoxon' && m !== 'counts' && m !== 'bm_full' },
+      { k: 'bhN', label: 'Behaviours tested (BH)', type: 'range', min: 1, max: 30, step: 1, fmt: (v) => v === 1 ? '1 (no correction)' : String(v), hint: 'With N behaviours and only this one responding, BH needs p ≤ α/N.' },
+      { k: 'shiftNull', label: 'Shift null', type: 'select', show: () => !['wilcoxon', 'bm_full', 'counts', 'zeta', 'isi'].includes(m), opts: [['auto', 'Auto (whole session)'], ['trial', 'Per trial ±6 s'], ['session', 'Whole session (one shift moves all trials)']], hint: 'Per trial: each trial’s own −6 to +6 s segment is rotated by its own shift of 2–8 s (20 ms steps). Whole session: the whole spike train is rotated by one offset. The page draws shifts at random.' }
+    ];
+    const T4PRE = { k: 't4Pre', label: 'Pre-window length (each trial’s own baseline)', type: 'range', min: 0.1, max: 2.5, step: 0.025, fmt: (v) => v.toFixed(3) + ' s: −' + (v + (opts.t4PreGap || 0)).toFixed(3) + ' to −' + (opts.t4PreGap || 0).toFixed(3) + ' s', hint: 'Default 2 s ending 0.2 s before the event (−2.2 to −0.2 s). Gap + length is kept within 3 s. The response window end above sets the behaviour length the phases are cut from.' };
+    const T4GAP = { k: 't4PreGap', label: 'Gap between pre-window and event', type: 'range', min: 0, max: 0.5, step: 0.05, fmt: (v) => v.toFixed(2) + ' s', hint: 'Simulated cells have no other events, so no trial is dropped for overlapping one.' };
+    const T4POST = { k: 't4Post', label: 'Post window after the response window', type: 'range', min: 0, max: 1, step: 0.05, fmt: (v) => v > 0 ? '+' + v.toFixed(2) + ' s' : 'none (default)' };
+    const T4P = { k: 't4P', label: 'p value from', type: 'select', hint: 'The signed-rank p assumes the trial differences are symmetric when there is no response. With a short pre-window and a sparse cell they are not, and the test calls null cells (see the False alarms tab). The shift null keeps the window lengths, so it does not.', opts: [['shift', 'Shift null on the same statistic (fixed)'], ['exact', 'Exact signed-rank (assumes symmetric differences)'], ['scipy', 'As scipy 1.16: normal approximation above 13 trials when there are ties or zeros']] };
+    const spec = {
+      bm_shift: [{ k: 'binS', label: 'Bin size', type: 'range', min: 0.005, max: 0.1, step: 0.005, fmt: (v) => Math.round(v * 1000) + ' ms' },
+        { k: 'shiftSet', label: 'Shuffle', type: 'select', show: () => SL.shiftModeFor(sim || {}, opts) === 'session', opts: [['skip', 'Skip-near (skip shifts < 2 s)'], ['every', 'Every-offset']] }],
+      bm_full: [{ k: 'bmData', label: 'Values compared', type: 'select', opts: [['trial', 'One rate per trial (recommended)'], ['bins', 'Binary bins, as BM: relative effect (not independent)']] },
+        { k: 'binS', label: 'Bin size (binary bins only)', type: 'range', min: 0.005, max: 0.1, step: 0.005, fmt: (v) => Math.round(v * 1000) + ' ms' }],
+      shape2: [{ k: 'shiftSet', label: 'Shuffle', type: 'select', show: () => SL.shiftModeFor(sim || {}, opts) === 'session', opts: [['skip', 'Skip-near (skip shifts < 3 s)'], ['every', 'Every-offset']] }],
+      rate_ratio: [{ k: 'shiftSet', label: 'Shuffle', type: 'select', show: () => SL.shiftModeFor(sim || {}, opts) === 'session', opts: [['skip', 'Skip-near (skip shifts < 2 s)'], ['every', 'Every-offset']] }],
+      shape: [{ k: 'shiftSet', label: 'Shuffle', type: 'select', opts: [['skip', 'Skip-near (skip shifts < 3 s)'], ['every', 'Every-offset'], ['window', 'Window-only (flagged: see the False alarms tab)']] }],
+      zeta: [{ k: 'jitterS', label: 'Onset jitter width', type: 'range', min: 0.25, max: 3, step: 0.25, fmt: (v) => '±' + v.toFixed(2) + ' s' },
+        { k: 'zetaP', label: 'p value from', type: 'select', opts: [['quantile', 'Direct quantile (rank among resamples)'], ['gumbel', 'Gumbel fit (ZETA paper)']] }],
+      isi: [{ k: 'isiStart', label: 'First fake spike', type: 'select', opts: [['stationary', 'Stationary start (fixed version)'], ['fixed', '1–300 ms after the window starts (the old bug)']] }],
+      counts: [{ k: 'countFamily', label: 'Count model per trial', type: 'select', opts: [['poisson', 'Poisson'], ['nb', 'Negative binomial (dispersion from baseline)']] },
+        { k: 'passPct', label: 'Trials that must pass', type: 'range', min: 0, max: 100, step: 1, fmt: (v) => v === 0 ? '0% (old rule: ≥ 2 trials)' : v + '% of trials', hint: 'Called responsive when at least this share of trials pass, and never fewer than 2 trials.' }],
+      t4: [T4PRE, T4GAP, T4POST, T4P, { k: 'respNull', label: 'Trial responsiveness null', type: 'select', opts: [['baseline', 'Same-shape baseline windows (fixed)'], ['pipeline', 'Pairwise pre-window differences (original)']] }],
+      t4pre: [T4PRE, T4GAP, T4P, { k: 't4preW', label: 'Response rate', type: 'select', opts: [['time', 'Whole window, weighted by time (fixed)'], ['equal', 'Mean of the 3 phase rates (original)']] }],
+      t4or_pipe: [T4PRE, T4GAP, T4POST], t4or_fix: [T4PRE, T4GAP, T4POST],
+      mad: [], wilcoxon: []
+    };
+    return common.slice(0, 2).concat(spec[m], common.slice(2));
+  }
+
+  // ---------------- generic control builder ----------------
+  function getPath(obj, path) { return path.split('.').reduce((o, k) => o[k], obj); }
+  function setPath(obj, path, v) { const ks = path.split('.'); let o = obj; for (let i = 0; i < ks.length - 1; i++) o = o[ks[i]]; o[ks[ks.length - 1]] = v; }
+  function toSlider(it, v) { return it.log ? Math.log(v) : v; }
+  function fromSlider(it, s) { if (!it.log) return +s; const v = Math.exp(+s); return Math.round(v / it.step) * it.step; }
+
+  function buildCtl(it, getV, setV, idp) {
+    const d = document.createElement('div'); d.className = 'ctl'; d.dataset.k = it.k;
+    const id = idp + it.k.replace(/\./g, '_');
+    const lab = document.createElement('label'); lab.htmlFor = id; lab.textContent = it.label; d.appendChild(lab);
+    if (it.type === 'range') {
+      const out = document.createElement('output'); out.id = id + '_o'; d.appendChild(out);
+      const r = document.createElement('input'); r.type = 'range'; r.id = id;
+      if (it.log) { r.min = Math.log(it.min); r.max = Math.log(it.max); r.step = 'any'; } else { r.min = it.min; r.max = it.max; r.step = it.step; }
+      r.value = toSlider(it, getV()); out.textContent = it.fmt(getV());
+      r.addEventListener('input', () => { const v = fromSlider(it, r.value); out.textContent = it.fmt(v); setV(v); });
+      d.appendChild(r);
+    } else {
+      d.appendChild(document.createElement('span'));
+      const s = document.createElement('select'); s.id = id;
+      for (const [v, t] of it.opts) { const o = document.createElement('option'); o.value = v; o.textContent = t; s.appendChild(o); }
+      s.value = String(getV());
+      s.addEventListener('change', () => setV(it.bool ? s.value === 'true' : s.value));
+      d.appendChild(s);
+    }
+    if (it.hint || it.hintFn) { const h = document.createElement('div'); h.className = 'hint'; h.textContent = it.hint || it.hintFn(cell); d.appendChild(h); }
+    return d;
+  }
+
+  function renderCellControls() {
+    const host = $('cellControls'); host.innerHTML = '';
+    for (const g of CELL_SCHEMA) {
+      const det = document.createElement('details'); det.className = 'grp'; det.open = store.get('open:' + g.group, NARROW ? false : g.open);
+      det.addEventListener('toggle', () => store.set('open:' + g.group, det.open));
+      const sm = document.createElement('summary'); sm.textContent = g.group; det.appendChild(sm);
+      for (const it of g.items) {
+        const c = buildCtl(it, () => cell[it.k], (v) => { cell[it.k] = v; onCellChange(it.k); }, 'c_');
+        c.hidden = it.show ? !it.show(cell) : false; det.appendChild(c);
+      }
+      host.appendChild(det);
+    }
+  }
+  function refreshShows() {
+    for (const g of CELL_SCHEMA) for (const it of g.items) {
+      const el = document.querySelector('#cellControls .ctl[data-k="' + it.k + '"]'); if (!el) continue;
+      if (it.show) el.hidden = !it.show(cell);
+      if (it.hintFn) { const h = el.querySelector('.hint'); if (h) h.textContent = it.hintFn(cell); }
+    }
+  }
+  function renderPresets() {
+    const host = $('presets'); host.innerHTML = '';
+    for (const [k, pr] of Object.entries(PRESETS)) {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = pr.label;
+      b.addEventListener('click', () => { cell = Object.assign({}, SL.DEFAULTS, pr.p, { seed: cell.seed }); renderCellControls(); onCellChange('*'); });
+      host.appendChild(b);
+    }
+  }
+  function renderTestControls() {
+    const host = $('testControls'); host.innerHTML = '';
+    for (const it of testSchema(method)) {
+      if (it.show && !it.show()) continue;
+      const getV = it.k === 'bhN' ? () => bhN : () => getPath(opts, it.k);
+      const setV = it.k === 'bhN' ? (v) => { bhN = v; store.set('bhN', v); scheduleTests(); } : (v) => {
+        setPath(opts, it.k, v);
+        if (it.k === 'shiftNull') { store.set('opts', opts); renderTestControls(); scheduleTests(); return; }
+        store.set('opts', opts); scheduleTests(); };
+      host.appendChild(buildCtl(it, getV, setV, 't_'));
+    }
+  }
+
+  // ---------------- drawing helpers ----------------
+  function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+  function setupCanvas(cv) {
+    const dpr = window.devicePixelRatio || 1, w = cv.clientWidth || 600, h = +cv.getAttribute('height');
+    cv.style.height = h + 'px'; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const big = document.body.classList.contains('big');
+    ctx.font = (big ? 15 : 12) + 'px ' + css('--f-body');
+    return { ctx, w, h, big };
+  }
+  function niceTicks(lo, hi, n) {
+    const span = hi - lo || 1, step0 = span / Math.max(1, n), mag = Math.pow(10, Math.floor(Math.log10(step0)));
+    const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= step0) || step0;
+    const out = []; for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) out.push(+v.toFixed(10));
+    return out;
+  }
+  function tickDec(ts) {
+    if (ts.length < 2) return 0; const st = Math.abs(ts[1] - ts[0]);
+    let d = 0; while (d < 6 && Math.abs(Math.round(st * Math.pow(10, d)) - st * Math.pow(10, d)) > 1e-6) d++;
+    return ts.some((t) => Math.round(t) !== t) ? d : 0;
+  }
+  function frame(g, pad, xr, yr, xlab, ylab, opt) {
+    const { ctx, w, h } = g, X = (v) => pad.l + (v - xr[0]) / (xr[1] - xr[0]) * (w - pad.l - pad.r), Y = (v) => h - pad.b - (v - yr[0]) / (yr[1] - yr[0]) * (h - pad.t - pad.b);
+    ctx.strokeStyle = css('--line'); ctx.fillStyle = css('--muted'); ctx.lineWidth = 1;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    const xts = (opt && opt.xt) || niceTicks(xr[0], xr[1], 6), xdec = tickDec(xts);
+    for (const t of xts) { const x = X(t); ctx.beginPath(); ctx.moveTo(x, h - pad.b); ctx.lineTo(x, h - pad.b + 4); ctx.stroke(); ctx.fillText(opt && opt.xf ? opt.xf(t) : (xdec ? t.toFixed(xdec) : String(t)), x, h - pad.b + 6); }
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    if (!(opt && opt.noY)) for (const t of niceTicks(yr[0], yr[1], 4)) { const y = Y(t); ctx.strokeStyle = css('--line'); ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke(); ctx.fillText(opt && opt.yf ? opt.yf(t) : String(t), pad.l - 6, y); }
+    ctx.strokeStyle = css('--muted'); ctx.beginPath(); ctx.moveTo(pad.l, h - pad.b); ctx.lineTo(w - pad.r, h - pad.b); ctx.stroke();
+    ctx.fillStyle = css('--text'); ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(xlab, pad.l + (w - pad.l - pad.r) / 2, h - 2);
+    ctx.save(); ctx.translate(12, pad.t + (h - pad.t - pad.b) / 2); ctx.rotate(-Math.PI / 2); ctx.textBaseline = 'top'; ctx.fillText(ylab, 0, -8); ctx.restore();
+    return { X, Y };
+  }
+  function shadeWindows(g, pad, X, w0, w1, label0, label1) {
+    const { ctx, h } = g;
+    ctx.fillStyle = css('--base-win'); ctx.fillRect(X(w0[0]), pad.t, X(w0[1]) - X(w0[0]), h - pad.t - pad.b);
+    ctx.fillStyle = css('--resp-win'); ctx.fillRect(X(w1[0]), pad.t, X(w1[1]) - X(w1[0]), h - pad.t - pad.b);
+    ctx.fillStyle = css('--muted'); ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    if (label0) ctx.fillText(label0, X(w0[0]) + 4, pad.t - 16);
+    if (label1) ctx.fillText(label1, X(w1[0]) + 4, pad.t - 16);
+    ctx.strokeStyle = css('--ink'); ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(X(0), pad.t - 2); ctx.lineTo(X(0), h - pad.b); ctx.stroke(); ctx.setLineDash([]);
+  }
+  function marker(ctx, kind, x, y, r) {
+    ctx.beginPath();
+    if (kind === 'square') ctx.rect(x - r, y - r, 2 * r, 2 * r);
+    else if (kind === 'diamond') { ctx.moveTo(x, y - r * 1.3); ctx.lineTo(x + r * 1.3, y); ctx.lineTo(x, y + r * 1.3); ctx.lineTo(x - r * 1.3, y); ctx.closePath(); }
+    else if (kind === 'triangle') { ctx.moveTo(x, y - r * 1.3); ctx.lineTo(x + r * 1.2, y + r); ctx.lineTo(x - r * 1.2, y + r); ctx.closePath(); }
+    else ctx.arc(x, y, r, 0, 2 * Math.PI);
+    ctx.fill();
+  }
+  const fmtP = (p) => p === null || p === undefined ? '—' : p < 0.001 ? p.toExponential(1) : p.toFixed(3);
+  const fmtN = (v, d) => (v === null || v === undefined || !isFinite(v)) ? '—' : Math.abs(v) >= 100 ? v.toFixed(0) : v.toFixed(d === undefined ? 2 : d);
+
+  // ---------------- section 1 ----------------
+  function drawRaster() {
+    const cv = $('raster'), n = sim.trials.length;
+    cv.setAttribute('height', String(Math.max(200, Math.min(520, 60 + n * (n > 60 ? 3.4 : 8)))));
+    const g = setupCanvas(cv), pad = { l: 52, r: 14, t: 26, b: 40 };
+    const { X, Y } = frame(g, pad, [SL.T0, SL.T1], [0, n], 'Time from event onset (s)', 'Trial', { noY: true });
+    shadeWindows(g, pad, X, opts.W.base, opts.W.resp, 'baseline', 'response');
+    const ctx = g.ctx, rowH = (g.h - pad.t - pad.b) / n, cs = css('--spike'), cr = css('--spike-resp');
+    ctx.lineWidth = g.big ? 2 : 1.3;
+    sim.trials.forEach((tr, j) => {
+      const y0 = pad.t + j * rowH + rowH * 0.12, y1 = pad.t + (j + 1) * rowH - rowH * 0.12;
+      for (const t of tr) { ctx.strokeStyle = (t >= opts.W.resp[0] && t < opts.W.resp[1]) ? cr : cs; const x = X(t); ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, Math.max(y1, y0 + 1)); ctx.stroke(); }
+      if (sim.meta[j].respOn && cell.responds) { ctx.fillStyle = css('--accent'); ctx.fillRect(g.w - pad.r + 4, y0, 4, Math.max(1, y1 - y0)); }
+    });
+    ctx.fillStyle = css('--muted'); ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    for (const t of niceTicks(1, n, 4)) if (t >= 1 && t === Math.round(t)) ctx.fillText(String(t), pad.l - 6, pad.t + (t - 0.5) * rowH);
+    const nResp = sim.meta.filter((m) => m.respOn).length;
+    $('rasterCap').textContent = n + ' trials, one row each. Spikes in the response window are coloured. Mark at right = trial the simulation made respond (' + (cell.responds ? nResp + ' of ' + n : 'none: null cell') + ').';
+  }
+  function drawPSTH() {
+    const bw = +$('psthBin').value / 1000; $('psthBinOut').textContent = Math.round(bw * 1000) + ' ms';
+    const nb = Math.round((SL.T1 - SL.T0) / bw), n = sim.trials.length;
+    const per = sim.trials.map((tr) => { const h = new Float64Array(nb); for (const t of tr) { const i = Math.floor((t - SL.T0) / bw); if (i >= 0 && i < nb) h[i] += 1 / bw; } return h; });
+    const mean = new Float64Array(nb), sem = new Float64Array(nb);
+    for (let i = 0; i < nb; i++) { let m = 0; for (const h of per) m += h[i]; m /= n; let v = 0; for (const h of per) v += (h[i] - m) * (h[i] - m); v = n > 1 ? v / (n - 1) : 0; mean[i] = m; sem[i] = Math.sqrt(v / n); }
+    const truth = sim.meanRate, step = Math.max(1, Math.round(truth.length / 800));
+    let ymax = 0; for (let i = 0; i < nb; i++) ymax = Math.max(ymax, mean[i] + sem[i]);
+    for (let i = 0; i < truth.length; i += step) ymax = Math.max(ymax, truth[i]);
+    ymax = ymax > 0 ? ymax * 1.1 : 1;
+    const g = setupCanvas($('psth')), pad = { l: 52, r: 14, t: 26, b: 40 };
+    const { X, Y } = frame(g, pad, [SL.T0, SL.T1], [0, ymax], 'Time from event onset (s)', 'Rate (spikes/s)');
+    shadeWindows(g, pad, X, opts.W.base, opts.W.resp, 'baseline', 'response');
+    const ctx = g.ctx;
+    ctx.fillStyle = css('--resp-win'); ctx.beginPath();
+    for (let i = 0; i < nb; i++) { const x0 = X(SL.T0 + i * bw), x1 = X(SL.T0 + (i + 1) * bw); if (i === 0) ctx.moveTo(x0, Y(mean[i] + sem[i])); ctx.lineTo(x0, Y(mean[i] + sem[i])); ctx.lineTo(x1, Y(mean[i] + sem[i])); }
+    for (let i = nb - 1; i >= 0; i--) { const x0 = X(SL.T0 + i * bw), x1 = X(SL.T0 + (i + 1) * bw); ctx.lineTo(x1, Y(Math.max(0, mean[i] - sem[i]))); ctx.lineTo(x0, Y(Math.max(0, mean[i] - sem[i]))); }
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = css('--ink'); ctx.lineWidth = g.big ? 2.5 : 1.6; ctx.beginPath();
+    for (let i = 0; i < nb; i++) { const x0 = X(SL.T0 + i * bw), x1 = X(SL.T0 + (i + 1) * bw); if (i === 0) ctx.moveTo(x0, Y(mean[i])); else ctx.lineTo(x0, Y(mean[i])); ctx.lineTo(x1, Y(mean[i])); }
+    ctx.stroke();
+    ctx.strokeStyle = css('--truth'); ctx.setLineDash([6, 4]); ctx.lineWidth = g.big ? 2.2 : 1.4; ctx.beginPath();
+    for (let i = 0; i < truth.length; i += step) { const x = X(SL.T0 + (i + 0.5) * SL.DT); if (i === 0) ctx.moveTo(x, Y(truth[i])); else ctx.lineTo(x, Y(truth[i])); }
+    ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = css('--muted'); ctx.textAlign = 'right'; ctx.textBaseline = 'top';
+    if (g.w >= 480) ctx.fillText('n = ' + n + ' trials', g.w - pad.r, pad.t - 16);
+    $('psthN').textContent = 'n = ' + n + ' trials.';
+    $('psthCap').textContent = 'Mean rate across trials ± SEM (shaded). Dashed line: the true rate the cell was simulated from.';
+  }
+  let countLawsOn = Object.assign({ poisson: true, nb: true }, store.get('countLaws', {}));
+  function drawLaws() {
+    // intervals: whole session
+    const sp = sim.spikes, isis = cellIsis();
+    const il = SL.isiLaw(cell), r = cell.baseRate;
+    {
+      const g = setupCanvas($('isiHist')), pad = { l: 52, r: 14, t: 16, b: 40 }, ctx = g.ctx;
+      if (isis.length < 5) { ctx.fillStyle = css('--muted'); ctx.fillText('Too few spikes to show intervals.', 20, 40); }
+      else {
+        const sorted = isis.slice().sort((a, b) => a - b), xmax = Math.max(sorted[Math.floor(0.97 * (sorted.length - 1))], 2 / r * 0.5);
+        const nb = 40, bw = xmax / nb, h = new Array(nb).fill(0); let inR = 0;
+        for (const v of isis) if (v < xmax) { h[Math.floor(v / bw)]++; inR++; }
+        const dens = h.map((c) => c / (isis.length * bw));
+        const curve = []; for (let i = 1; i <= 200; i++) { const x = xmax * i / 200; curve.push([x, cell.train === 'refractory' ? (x < cell.refractoryMs / 1000 ? 0 : r * Math.exp(-r * (x - cell.refractoryMs / 1000))) : r * SL.lawPdf(il.law, il.cv, x * r)]); }
+        const ymax = Math.max(...dens, ...curve.map((c) => Math.min(c[1], Math.max(...dens) * 2))) * 1.1 || 1;
+        const { X, Y } = frame(g, pad, [0, xmax], [0, ymax], 'Interval between spikes (s)', 'Density (1/s)', {});
+        ctx.fillStyle = css('--m8'); ctx.globalAlpha = 0.45;
+        for (let i = 0; i < nb; i++) { const y = Math.min(dens[i], ymax); ctx.fillRect(X(i * bw) + 0.5, Y(y), Math.max(1, X((i + 1) * bw) - X(i * bw) - 1), Y(0) - Y(y)); }
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = css('--truth'); ctx.lineWidth = g.big ? 3 : 2; ctx.setLineDash([6, 4]); ctx.beginPath();
+        curve.forEach(([x, y], i) => { const yy = Y(Math.min(y, ymax)); if (i) ctx.lineTo(X(x), yy); else ctx.moveTo(X(x), yy); }); ctx.stroke(); ctx.setLineDash([]);
+        let m = 0, v = 0; for (const x of isis) m += x; m /= isis.length; for (const x of isis) v += (x - m) * (x - m); v /= isis.length;
+        $('isiCap').textContent = isis.length + ' intervals from the whole session (the response and any rate changes are included). Dashed: the law the cell was built from (' + (cell.train === 'refractory' ? 'exponential with a ' + cell.refractoryMs + ' ms dead time' : LAWNAME[il.law] + ', CV ' + il.cv.toFixed(2)) + '), at the baseline rate. Measured CV ' + (Math.sqrt(v) / m).toFixed(2) + '. Right tail cut at the 97th percentile.';
+      }
+    }
+    // counts in 1 s windows over the whole session
+    {
+      const nW = Math.max(0, Math.floor(sim.L)), c = new Array(nW).fill(0);
+      for (const t of sp) { const k = Math.floor(t); if (t >= 0 && k < nW) c[k]++; }   // same windows [t, t + 1) as before, one pass
+      const g = setupCanvas($('countHist')), pad = { l: 52, r: 14, t: 16, b: 40 }, ctx = g.ctx;
+      const n = c.length, m = c.reduce((a, b) => a + b, 0) / n, v = c.reduce((a, b) => a + (b - m) * (b - m), 0) / Math.max(1, n - 1);
+      const kmax = Math.max(3, Math.min(Math.max(...c), Math.ceil(m + 5 * Math.sqrt(Math.max(v, m, 1))))), h = new Array(kmax + 1).fill(0);
+      for (const k of c) if (k <= kmax) h[k]++;
+      const lf = (k) => { let s = 0; for (let i = 2; i <= k; i++) s += Math.log(i); return s; };
+      const pois = (k) => Math.exp(-m + k * Math.log(Math.max(m, 1e-12)) - lf(k));
+      const rNB = v > m ? m * m / (v - m) : null;
+      const lgm = (x) => { let s = 0; while (x < 7) { s -= Math.log(x); x++; } return s + (x - 0.5) * Math.log(x) - x + 0.5 * Math.log(2 * Math.PI) + 1 / (12 * x) - 1 / (360 * x * x * x); };
+      const nbp = (k) => Math.exp(lgm(k + rNB) - lgm(rNB) - lf(k) + rNB * Math.log(rNB / (rNB + m)) + k * Math.log(m / (rNB + m)));
+      const share = h.map((x) => x / n), sd = Math.sqrt(Math.max(v, 1e-9)), cv = sd / Math.max(m, 1e-9);
+      // each law, matched to the window counts' mean (and variance); probability of k = mass between k - 0.5 and k + 0.5
+      const cont = (law) => (k) => { const lo = (k - 0.5) / m, hi = (k + 0.5) / m; return Math.max(0, SL.lawCdf(law, cv, hi) - (law === 'gaussian' || k > 0 ? SL.lawCdf(law, cv, lo) : 0)); };
+      const LAWS = [
+        { k: 'poisson', name: 'Poisson', col: '--m2', mk: 'o', np: 1, fn: pois },
+        { k: 'nb', name: 'Negative binomial', col: '--m5', mk: 't', np: 2, fn: rNB ? nbp : null },
+        { k: 'gaussian', name: 'Gaussian', col: '--m3', mk: 's', np: 2, fn: m > 0 ? cont('gaussian') : null },
+        { k: 'gamma', name: 'Gamma', col: '--m1', mk: 'd', np: 2, fn: m > 0 ? cont('gamma') : null },
+        { k: 'lognormal', name: 'Log-normal', col: '--m4', mk: 'x', np: 2, fn: m > 0 ? cont('lognormal') : null },
+        { k: 'invgamma', name: 'Inverse gamma', col: '--m6', mk: 'v', np: 2, fn: m > 0 ? cont('invgamma') : null },
+        { k: 'powerlaw', name: 'Power law', col: '--m7', mk: '+', np: 2, fn: m > 0 ? cont('powerlaw') : null }
+      ];
+      for (const L of LAWS) { if (!L.fn) { L.aic = null; continue; } let ll = 0; for (const x of c) ll += Math.log(Math.max(L.fn(x), 1e-12)); L.aic = 2 * L.np - 2 * ll; }
+      const ok = LAWS.filter((L) => L.aic !== null), best = ok.reduce((a, b) => (a.aic <= b.aic ? a : b), ok[0]);
+      const on = LAWS.filter((L) => L.fn && countLawsOn[L.k]);
+      let ymax = Math.max(...share); for (const L of on) for (let k = 0; k <= kmax; k++) ymax = Math.max(ymax, Math.min(L.fn(k), 1)); ymax *= 1.12;
+      const { X, Y } = frame(g, pad, [-0.5, kmax + 0.5], [0, ymax], 'Spikes in a 1 s window', 'Share of windows', { xt: niceTicks(0, kmax, 6).filter((t) => t === Math.round(t)), yf: (t) => Math.round(t * 100) + '%' });
+      const bw = (X(1) - X(0)) * 0.7;
+      ctx.fillStyle = css('--m8'); ctx.globalAlpha = 0.45; for (let k = 0; k <= kmax; k++) ctx.fillRect(X(k) - bw / 2, Y(share[k]), bw, Y(0) - Y(share[k])); ctx.globalAlpha = 1;
+      const R = g.big ? 5 : 3.6;
+      const mark = (x, y, t) => {
+        ctx.beginPath();
+        if (t === 'o') { ctx.arc(x, y, R, 0, 2 * Math.PI); ctx.fill(); }
+        else if (t === 't') { ctx.moveTo(x, y - R * 1.3); ctx.lineTo(x + R * 1.2, y + R); ctx.lineTo(x - R * 1.2, y + R); ctx.closePath(); ctx.fill(); }
+        else if (t === 'v') { ctx.moveTo(x, y + R * 1.3); ctx.lineTo(x + R * 1.2, y - R); ctx.lineTo(x - R * 1.2, y - R); ctx.closePath(); ctx.fill(); }
+        else if (t === 's') { ctx.fillRect(x - R, y - R, 2 * R, 2 * R); }
+        else if (t === 'd') { ctx.moveTo(x, y - R * 1.4); ctx.lineTo(x + R * 1.1, y); ctx.lineTo(x, y + R * 1.4); ctx.lineTo(x - R * 1.1, y); ctx.closePath(); ctx.fill(); }
+        else { ctx.lineWidth = g.big ? 3 : 2; if (t === 'x') { ctx.moveTo(x - R, y - R); ctx.lineTo(x + R, y + R); ctx.moveTo(x + R, y - R); ctx.lineTo(x - R, y + R); } else { ctx.moveTo(x - R * 1.2, y); ctx.lineTo(x + R * 1.2, y); ctx.moveTo(x, y - R * 1.2); ctx.lineTo(x, y + R * 1.2); } ctx.stroke(); }
+      };
+      on.forEach((L, li) => { ctx.fillStyle = css(L.col); ctx.strokeStyle = css(L.col); const off = (li - (on.length - 1) / 2) * Math.min(4, bw / (on.length + 1)); for (let k = 0; k <= kmax; k++) mark(X(k) + off, Y(Math.min(L.fn(k), ymax)), L.mk); });
+      // legend chips with AIC
+      const sym = { o: '●', t: '▲', v: '▼', s: '■', d: '◆', x: '✕', '+': '+' };
+      $('countLaws').innerHTML = LAWS.map((L) => '<label title="' + (L.aic === null ? 'cannot be fitted here' : 'AIC ' + L.aic.toFixed(1)) + '"><input type="checkbox" data-law="' + L.k + '"' + (countLawsOn[L.k] ? ' checked' : '') + (L.fn ? '' : ' disabled') + '> <span style="color:' + css(L.col) + '">' + sym[L.mk] + '</span> ' + L.name + (L.aic === null ? ' (n/a)' : ' <span class="aic">ΔAIC ' + (L.aic - best.aic).toFixed(0) + '</span>') + '</label>').join('');
+      $('countLaws').querySelectorAll('input').forEach((el) => el.addEventListener('change', () => { countLawsOn[el.dataset.law] = el.checked; store.set('countLaws', countLawsOn); drawLaws(); }));
+      const negMass = m > 0 ? SL.lawCdf('gaussian', cv, -0.5 / m) : 0;
+      $('countCap').textContent = n + ' one-second windows. Mean ' + m.toFixed(2) + ', variance ' + v.toFixed(2) + ', Fano ' + (v / Math.max(m, 1e-9)).toFixed(2) + '. Each law is matched to this mean' + ' and variance (Poisson: mean only); a count k gets the law’s mass between k − 0.5 and k + 0.5. Lowest AIC here: ' + best.name + ' (a rough ranking: moment-matched, not a full maximum-likelihood fit). Tick a law to draw it; ΔAIC = how far each law is from the best one (0 = best).' + (countLawsOn.gaussian && negMass > 0.005 ? ' The Gaussian puts ' + Math.round(negMass * 100) + '% of its mass below zero spikes.' : '');
+    }
+  }
+  function cellIsis() {
+    const sp = sim.spikes, out = []; for (let i = 1; i < sp.length; i++) out.push(sp[i] - sp[i - 1]);
+    return out;
+  }
+  function cellKpis() {
+    const W = opts.W, db = W.base[1] - W.base[0], dp = W.resp[1] - W.resp[0];
+    const b = sim.trials.map((tr) => SL.countIn(tr, W.base[0], W.base[1])), r = sim.trials.map((tr) => SL.countIn(tr, W.resp[0], W.resp[1]));
+    const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+    const mb = mean(b), mr = mean(r), vr = r.reduce((s, x) => s + (x - mr) * (x - mr), 0) / Math.max(1, r.length - 1);
+    const isi = cellIsis();
+    const mi = isi.length ? mean(isi) : NaN, sdi = isi.length > 1 ? Math.sqrt(isi.reduce((s, x) => s + (x - mi) * (x - mi), 0) / (isi.length - 1)) : NaN;
+    const zero = r.filter((x) => x === 0).length;
+    const items = [
+      ['Baseline rate', fmtN(mb / db) + ' /s', 'measured, ' + W.base[0] + ' to ' + W.base[1] + ' s'],
+      ['Response-window rate', fmtN(mr / dp) + ' /s', 'measured, 0 to ' + W.resp[1] + ' s'],
+      ['Spikes per trial', fmtN(mr, 2), 'in the response window'],
+      ['Trials with 0 spikes', zero + ' / ' + r.length, 'in the response window'],
+      ['Fano factor', fmtN(mr > 0 ? vr / mr : NaN), 'response-window counts; Poisson = 1'],
+      ['ISI CV', fmtN(mi > 0 ? sdi / mi : NaN), 'whole session; Poisson = 1']
+    ];
+    $('cellKpis').innerHTML = items.map(([k, v, s]) => '<div class="kpi"><div class="k">' + k + '</div><div class="v">' + v + '</div><div class="s">' + s + '</div></div>').join('');
+  }
+
+  // ---------------- section 2 ----------------
+  function effAlpha() { return opts.alpha / Math.max(1, bhN); }
+  function runAll() {
+    results = {}; checks = {};
+    const o = Object.assign({}, opts, { alpha: effAlpha(), W: { base: opts.W.base.slice(), resp: opts.W.resp.slice() }, shapeWin: opts.shapeWin.slice() });
+    for (const k of METHOD_ORDER) {
+      const oo = Object.assign({}, o);
+      if (k === 'counts') oo.alpha = opts.alpha; // per-trial alpha, no BH
+      results[k] = SL.runMethod(k, sim, oo);
+      checks[k] = SL.checkAssumptions(k, sim, oo);
+    }
+  }
+  const flagText = (k) => (checks[k] || []).filter((c) => c.ok === false).map((c) => c.label + ': ' + c.measured).join('\n');
+  const flagHtml = (k) => { const t = flagText(k); return t ? '<span class="aflag" role="img" aria-label="Assumption flag: ' + esc(t) + '" title="' + esc(t) + '">⚑</span>' : ''; };
+  function renderChips() {
+    const host = $('methodChips'); host.innerHTML = '';
+    for (const k of METHOD_ORDER) {
+      const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-pressed', String(k === method));
+      b.innerHTML = '<span class="dot" style="background:var(' + MCOL[k] + ')"></span>' + SL.METHODS[k].name;
+      b.addEventListener('click', () => { method = k; store.set('method', k); renderChips(); renderTestControls(); renderTests(); });
+      host.appendChild(b);
+    }
+  }
+  function statusClass(s) { return /Flagged|Uncorrected|Naive|not a detection/.test(s) ? 'flag' : ''; }
+  function renderTests() {
+    const M = SL.METHODS[method], r = results[method];
+    if (!r) { $('mName').textContent = M.name; return; }
+    $('mName').textContent = M.name;
+    const st = method === 'shape' && opts.shiftSet === 'window' ? 'Flagged: window-only shuffle' : M.status;
+    const ms = $('mStatus'); ms.textContent = st; ms.className = 'pill status ' + statusClass(st);
+    $('mBlurb').textContent = method === 'bm_shift' && SL.shiftModeFor(sim, opts) === 'trial' ? M.blurb.replace('The null rotates the whole session’s spike train by one random offset (same shift for every trial), cuts the trials again at the real events, and recomputes A.', 'The null rotates each trial inside its own −6 to +6 s segment by its own random 2–8 s shift (set under Test settings), and recomputes A.') : M.blurb;
+    const v = $('verdict');
+    if (M.kind === 'reliability') {
+      v.className = 'verdict rel'; $('vIcon').textContent = r.called ? '✓' : '–';
+      $('vTitle').textContent = r.called ? 'Called responsive (' + r.stat + ' of ' + r.perTrial.length + ' trials pass, need ' + r.need + ')' : 'Not called (' + r.stat + ' of ' + r.perTrial.length + ' trials pass, need ' + r.need + ')';
+      $('vDetail').textContent = r.note + '. Shown as reliability, not detection: ' + (r.need <= 2 ? 'with many trials this rule passes by chance.' : 'no correction for the number of trials.');
+    } else {
+      v.className = 'verdict ' + (r.called ? 'yes' : 'no'); $('vIcon').textContent = r.called ? '✓' : '–';
+      $('vTitle').textContent = r.called ? 'Detected as significant' : 'No significant response';
+      const dir = r.direction ? (r.direction === 'up' ? ', rate up' : ', rate down') : '';
+      $('vDetail').textContent = (r.p === null ? 'Rule over several tests (no single p)' : 'p = ' + fmtP(r.p) + (r.called ? ' ≤ ' : ' > ') + 'α = ' + fmtP(effAlpha())) + (bhN > 1 ? ' (0.05 / ' + bhN + ' behaviours)' : '') + dir + (r.note ? '. ' + r.note : '');
+    }
+    const k = [
+      ['p value', fmtP(r.p), r.pText ? r.pText : r.nullDist ? 'from ' + r.nullDist.length + ' shuffles' : M.kind === 'reliability' ? 'per-trial tests' : r.p === null ? 'rule: see the parts below' : r.how ? 'signed-rank, ' + r.how : 'normal approximation'],
+      [r.statName || 'statistic', r.kind === 'reliability' || method === 'counts' ? String(r.stat) : fmtN(r.stat, 3), method === 'counts' ? 'need ' + r.need + ' of ' + r.perTrial.length : 'observed'],
+      ['α used', fmtP(M.kind === 'reliability' ? opts.alpha : effAlpha()), bhN > 1 && M.kind !== 'reliability' ? 'after BH, worst case' : 'no correction'],
+      ['Trials', String(sim.trials.length), 'events in this cell']
+    ];
+    $('testKpis').innerHTML = k.map(([a, b, c]) => '<div class="kpi"><div class="k">' + a + '</div><div class="v">' + b + '</div><div class="s">' + c + '</div></div>').join('');
+    const cl = checks[method] || [], bad = cl.filter((c) => c.ok === false);
+    if (bad.length) $('vTitle').innerHTML = esc($('vTitle').textContent) + ' <span class="aflag" aria-hidden="true">⚑</span><span class="sr-only"> (assumption flag)</span>';
+    $('vChecks').innerHTML = cl.length
+      ? '<div class="l" style="font-weight:700;color:var(--ink)">' + (bad.length ? '<span class="aflag" style="margin:0">⚑</span> ' + bad.length + ' of ' + cl.length + ' assumption checks failed on this cell' : 'Assumption checks on this cell: all ' + cl.length + ' passed') + '</div>' +
+        '<div class="w" style="color:var(--muted)">Each check is its own test at the threshold shown, so with several checks one can fail by chance (about 1 in 20 per check at p < 0.05).</div>' +
+        cl.map((c) => '<div class="ac ' + (c.ok ? 'good' : 'bad') + '"><span class="i" aria-hidden="true">' + (c.ok ? '✓' : '⚑') + '</span><span class="l">' + esc(c.label) + (c.ok ? '' : ' — failed') + '</span><span class="m">' + esc(c.measured) + '</span><span class="w">' + esc(c.why) + '</span></div>').join('')
+      : '<div class="w" style="color:var(--muted)">No assumption check for this test.</div>';
+    drawPictures(r);
+    renderTable();
+    drawSweep();
+  }
+
+  function drawHist(cv, arr, obs, xlab, twoSided, center) {
+    const g = setupCanvas(cv), pad = { l: 48, r: 14, t: 22, b: 40 }, ctx = g.ctx;
+    if (!arr || arr.length === 0) { ctx.fillStyle = css('--muted'); ctx.fillText('No null distribution (the test could not run).', 20, 40); return; }
+    let lo = Math.min(obs, ...arr), hi = Math.max(obs, ...arr); if (twoSided) { const m = Math.max(Math.abs(lo - center), Math.abs(hi - center)); lo = center - m; hi = center + m; }
+    if (hi === lo) { hi = lo + 1; }
+    const span = hi - lo; lo -= span * 0.05; hi += span * 0.05;
+    const nb = 30, h = new Array(nb).fill(0); for (const v of arr) h[Math.min(nb - 1, Math.max(0, Math.floor((v - lo) / (hi - lo) * nb)))]++;
+    const ymax = Math.max(...h) * 1.15;
+    const { X, Y } = frame(g, pad, [lo, hi], [0, ymax], xlab, 'Shuffles', {});
+    for (let i = 0; i < nb; i++) {
+      const x0 = X(lo + i / nb * (hi - lo)), x1 = X(lo + (i + 1) / nb * (hi - lo)), mid = lo + (i + 0.5) / nb * (hi - lo);
+      const extreme = twoSided ? Math.abs(mid - center) >= Math.abs(obs - center) : mid >= obs;
+      ctx.fillStyle = extreme ? css('--truth') : css('--m8'); ctx.globalAlpha = extreme ? 0.8 : 0.45;
+      ctx.fillRect(x0 + 0.5, Y(h[i]), Math.max(1, x1 - x0 - 1), Y(0) - Y(h[i]));
+    }
+    ctx.globalAlpha = 1; ctx.strokeStyle = css('--ink'); ctx.lineWidth = g.big ? 3 : 2;
+    ctx.beginPath(); ctx.moveTo(X(obs), pad.t - 4); ctx.lineTo(X(obs), g.h - pad.b); ctx.stroke();
+    ctx.fillStyle = css('--ink'); ctx.textAlign = X(obs) > g.w * 0.7 ? 'right' : 'left'; ctx.textBaseline = 'top';
+    ctx.fillText('observed', X(obs) + (ctx.textAlign === 'left' ? 5 : -5), pad.t - 18);
+  }
+  function drawPictures(r) {
+    const c1 = $('pic1'), c2 = $('pic2');
+    const W = opts.W, db = W.base[1] - W.base[0], dp = W.resp[1] - W.resp[0];
+    const setT = (a, b, c, d) => { $('pic1Title').textContent = a; $('pic1Cap').textContent = b; $('pic2Title').textContent = c; $('pic2Cap').textContent = d; };
+    if (method === 'wilcoxon') {
+      setT('Each trial: baseline vs response rate', 'One line per trial. The test ranks the differences.', 'Differences (response − baseline)', 'Sorted per-trial differences; teal = up, red = down, grey = zero (dropped).');
+      const pr = r.pairs, g = setupCanvas(c1), pad = { l: 52, r: 20, t: 20, b: 40 }, ctx = g.ctx;
+      const ymax = Math.max(1, ...pr.map((p) => Math.max(p[0], p[1]))) * 1.1;
+      const { X, Y } = frame(g, pad, [-0.3, 1.3], [0, ymax], '', 'Rate (spikes/s)', { xt: [0, 1], xf: (t) => t === 0 ? 'baseline' : 'response' });
+      ctx.lineWidth = 1; pr.forEach(([b, q], i) => { const jx = ((i * 37) % 17) / 17 * 0.12 - 0.06; ctx.strokeStyle = q > b ? css('--accent') : q < b ? css('--truth') : css('--line'); ctx.globalAlpha = 0.55; ctx.beginPath(); ctx.moveTo(X(0 + jx), Y(b)); ctx.lineTo(X(1 + jx), Y(q)); ctx.stroke(); ctx.globalAlpha = 1; ctx.fillStyle = css('--ink'); marker(ctx, 'circle', X(0 + jx), Y(b), 2.5); marker(ctx, 'circle', X(1 + jx), Y(q), 2.5); });
+      const d = pr.map((p) => p[1] - p[0]).sort((a, b) => a - b), g2 = setupCanvas(c2), p2 = { l: 52, r: 14, t: 20, b: 40 };
+      const m = Math.max(1, ...d.map(Math.abs)) * 1.1, fr = frame(g2, p2, [0, d.length + 1], [-m, m], 'Trials, sorted', 'Difference (spikes/s)', { xt: [] });
+      d.forEach((v, i) => { g2.ctx.fillStyle = v > 0 ? css('--accent') : v < 0 ? css('--truth') : css('--muted'); g2.ctx.fillRect(fr.X(i + 0.6), fr.Y(Math.max(v, 0)), Math.max(1, fr.X(1) - fr.X(0) - 1), Math.abs(fr.Y(v) - fr.Y(0)) || 1); });
+      return;
+    }
+    if (method === 'bm_shift' || method === 'rate_ratio' || method === 'mad' || method === 'isi') {
+      if (method === 'bm_shift') {
+        setT('Share of short bins that hold a spike', 'Binary bins of ' + Math.round(opts.binS * 1000) + ' ms, pooled over trials. A = 0.5 + (response share − baseline share) / 2. With a sparse baseline there is little room to go down.', 'Shift null for A − 0.5', (SL.shiftModeFor(sim, opts) === 'trial' ? 'Each shuffle rotates every trial inside its own −6 to +6 s segment by its own 2–8 s shift, then recomputes.' : 'Each shuffle shifts the whole spike train in time against the events, then recomputes.') + ' Red bars are as extreme as the observed value.');
+        const e = r.extra, g = setupCanvas(c1), pad = { l: 52, r: 14, t: 20, b: 40 }, ctx = g.ctx, ym = Math.max(0.002, e.qb, e.qp) * 1.25;
+        const { X, Y } = frame(g, pad, [-0.5, 1.5], [0, ym], '', 'Bins with ≥ 1 spike', { xt: [0, 1], xf: (t) => t === 0 ? 'baseline' : 'response', yf: (t) => (100 * t).toFixed(t < 0.1 ? 1 : 0) + '%' });
+        ctx.fillStyle = css('--m8'); ctx.fillRect(X(-0.25), Y(e.qb), X(0.25) - X(-0.25), Y(0) - Y(e.qb));
+        ctx.fillStyle = css('--m2'); ctx.fillRect(X(0.75), Y(e.qp), X(1.25) - X(0.75), Y(0) - Y(e.qp));
+      } else if (method === 'rate_ratio') {
+        setT('Pooled counts', 'Spike counts over all trials in each window, and the rate each implies.', 'Shift null for the log rate ratio', 'Same shift null as BM: relative effect. Red bars are as extreme as the observed value (two-sided).');
+        const e = r.extra, n = sim.trials.length, rb = (e.kb + 0.5) / (n * db), rq = (e.kp + 0.5) / (n * dp);
+        const g = setupCanvas(c1), pad = { l: 52, r: 14, t: 20, b: 40 }, ctx = g.ctx, ym = Math.max(rb, rq, 0.1) * 1.3;
+        const { X, Y } = frame(g, pad, [-0.5, 1.5], [0, ym], '', 'Rate (spikes/s)', { xt: [0, 1], xf: (t) => t === 0 ? 'baseline (' + e.kb + ' spikes)' : 'response (' + e.kp + ' spikes)' });
+        ctx.fillStyle = css('--m8'); ctx.fillRect(X(-0.25), Y(rb), X(0.25) - X(-0.25), Y(0) - Y(rb));
+        ctx.fillStyle = css('--m1'); ctx.fillRect(X(0.75), Y(rq), X(1.25) - X(0.75), Y(0) - Y(rq));
+      } else if (method === 'mad') {
+        setT('|response − baseline| per trial', 'Every trial adds a non-negative value, so noise alone pushes the mean up.', 'Shift null (upper tail only)', 'Red bars are at least as large as the observed value.');
+        const vals = sim.trials.map((tr) => Math.abs(SL.countIn(tr, W.resp[0], W.resp[1]) / dp - SL.countIn(tr, W.base[0], W.base[1]) / db)).sort((a, b) => a - b);
+        const g = setupCanvas(c1), pad = { l: 52, r: 14, t: 20, b: 40 }, fr = frame(g, pad, [0, vals.length + 1], [0, Math.max(1, ...vals) * 1.1], 'Trials, sorted', '|Δ rate| (spikes/s)', { xt: [] });
+        vals.forEach((v, i) => { g.ctx.fillStyle = css('--m5'); g.ctx.fillRect(fr.X(i + 0.6), fr.Y(v), Math.max(1, fr.X(1) - fr.X(0) - 1), fr.Y(0) - fr.Y(v)); });
+      } else {
+        setT('One real trial vs one fake trial', 'Top: a real trial. Bottom: a fake train built from the cell’s own intervals. The “old bug” start puts the first fake spike 1–300 ms into every baseline.', 'Null: response − baseline rate in fake trains', 'Two-sided by rank. Red bars are as extreme as the observed value.');
+        const g = setupCanvas(c1), pad = { l: 52, r: 14, t: 26, b: 40 }, ctx = g.ctx;
+        const { X } = frame(g, pad, [SL.T0, SL.T1], [0, 2], 'Time from event onset (s)', '', { noY: true });
+        shadeWindows(g, pad, X, W.base, W.resp, 'baseline', 'response');
+        const rng = SL.makeRng(opts.seed + 3), isis = []; for (let i = 1; i < sim.spikes.length; i++) isis.push(sim.spikes[i] - sim.spikes[i - 1]);
+        const real = sim.trials.find((t) => t.length > 0) || [];
+        const fake = []; if (isis.length > 2) { let t = opts.isiStart === 'fixed' ? SL.T0 + 0.001 + rng.u() * 0.299 : SL.T0 + rng.u() * isis[rng.int(isis.length)]; while (t < SL.T1) { fake.push(t); t += isis[rng.int(isis.length)]; } }
+        const rowY = (k) => pad.t + (k + 0.5) * (g.h - pad.t - pad.b) / 2;
+        ctx.lineWidth = 2; ctx.strokeStyle = css('--spike'); for (const t of real) { ctx.beginPath(); ctx.moveTo(X(t), rowY(0) - 14); ctx.lineTo(X(t), rowY(0) + 14); ctx.stroke(); }
+        ctx.strokeStyle = css('--m6'); for (const t of fake) { ctx.beginPath(); ctx.moveTo(X(t), rowY(1) - 14); ctx.lineTo(X(t), rowY(1) + 14); ctx.stroke(); }
+        ctx.fillStyle = css('--muted'); ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('real', 4, rowY(0)); ctx.fillText('fake', 4, rowY(1));
+      }
+      const two = method !== 'mad';
+      drawHist(c2, r.nullDist, method === 'bm_shift' ? r.centered : r.stat, method === 'bm_shift' ? 'A − 0.5' : method === 'rate_ratio' ? 'log rate ratio' : method === 'mad' ? 'mean |Δ rate| (spikes/s)' : 'Δ rate (spikes/s)', two, 0);
+      return;
+    }
+    if (method === 'bm_full') {
+      const x = r.x, y = r.y, bins = opts.bmData === 'bins', g = setupCanvas(c1), pad = { l: 52, r: 14, t: 20, b: 40 }, ctx = g.ctx;
+      setT(bins ? 'Binary bins in each window' : 'One rate per trial in each window', (bins ? 'Share of ' + Math.round(opts.binS * 1000) + ' ms bins holding a spike. ' : 'Dots: trials (baseline ' + opts.W.base[0] + ' to ' + opts.W.base[1] + ' s, response 0 to ' + opts.W.resp[1] + ' s). Bar: median. ') + 'Relative effect p̂ = ' + fmtN(r.stat, 3) + ' (0.5 = no difference).', 'Brunner–Munzel statistic on its t distribution', r.p === null ? (r.note || '') : 't = ' + fmtN(r.bm.w, 2) + ' with ' + fmtN(r.bm.df, 1) + ' df (Welch–Satterthwaite). Shaded: as extreme as the observed value, two-sided.');
+      if (bins) {
+        const qb = x.reduce((a, b) => a + b, 0) / Math.max(1, x.length), qp = y.reduce((a, b) => a + b, 0) / Math.max(1, y.length), ym = Math.max(0.002, qb, qp) * 1.25;
+        const { X, Y } = frame(g, pad, [-0.5, 1.5], [0, ym], '', 'Bins with ≥ 1 spike', { xt: [0, 1], xf: (t) => t === 0 ? 'baseline' : 'response', yf: (t) => (100 * t).toFixed(t < 0.1 ? 1 : 0) + '%' });
+        ctx.fillStyle = css('--m8'); ctx.fillRect(X(-0.25), Y(qb), X(0.25) - X(-0.25), Y(0) - Y(qb));
+        ctx.fillStyle = css('--m13'); ctx.fillRect(X(0.75), Y(qp), X(1.25) - X(0.75), Y(0) - Y(qp));
+      } else {
+        const ym = Math.max(1, ...x, ...y) * 1.1, { X, Y } = frame(g, pad, [-0.5, 1.5], [0, ym], '', 'Rate (spikes/s)', { xt: [0, 1], xf: (t) => t === 0 ? 'baseline' : 'response' });
+        [[x, 0, '--m8'], [y, 1, '--m13']].forEach(([v, c, col]) => {
+          ctx.fillStyle = css(col); ctx.globalAlpha = 0.7;
+          v.forEach((u, i) => { const jx = ((i * 37) % 17) / 17 * 0.3 - 0.15; marker(ctx, 'circle', X(c + jx), Y(u), g.big ? 4 : 3); });
+          ctx.globalAlpha = 1; const md = v.slice().sort((a, b) => a - b)[Math.floor(v.length / 2)] || 0;
+          ctx.strokeStyle = css('--ink'); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(c - 0.25), Y(md)); ctx.lineTo(X(c + 0.25), Y(md)); ctx.stroke(); ctx.lineWidth = 1;
+        });
+      }
+      // t density with the observed statistic
+      const g2 = setupCanvas(c2), p2 = { l: 48, r: 14, t: 22, b: 40 }, c = g2.ctx;
+      if (r.p === null || !isFinite(r.bm.df)) { c.fillStyle = css('--muted'); c.fillText(r.note || 'No t distribution to show.', 20, 40); return; }
+      const df = r.bm.df, w = r.bm.w, lim = Math.max(4, Math.abs(w) * 1.15), dens = (t) => Math.exp(SL.lgam((df + 1) / 2) - SL.lgam(df / 2) - 0.5 * Math.log(df * Math.PI) - (df + 1) / 2 * Math.log(1 + t * t / df));
+      const fr = frame(g2, p2, [-lim, lim], [0, dens(0) * 1.15], 't', 'Density', {});
+      c.fillStyle = css('--truth'); c.globalAlpha = 0.35;
+      for (const sgn of [-1, 1]) { c.beginPath(); c.moveTo(fr.X(sgn * Math.abs(w)), fr.Y(0)); for (let k = 0; k <= 60; k++) { const t = sgn * (Math.abs(w) + (lim - Math.abs(w)) * k / 60); c.lineTo(fr.X(t), fr.Y(dens(t))); } c.lineTo(fr.X(sgn * lim), fr.Y(0)); c.closePath(); c.fill(); }
+      c.globalAlpha = 1; c.strokeStyle = css('--ink'); c.lineWidth = g2.big ? 2.2 : 1.6; c.beginPath();
+      for (let k = 0; k <= 200; k++) { const t = -lim + 2 * lim * k / 200; if (k === 0) c.moveTo(fr.X(t), fr.Y(dens(t))); else c.lineTo(fr.X(t), fr.Y(dens(t))); } c.stroke();
+      c.strokeStyle = css('--m13'); c.lineWidth = 2; c.beginPath(); c.moveTo(fr.X(w), fr.Y(0)); c.lineTo(fr.X(w), fr.Y(dens(0) * 1.1)); c.stroke(); c.lineWidth = 1;
+      return;
+    }
+    if (method === 'shape2') {
+      const xb = r.posBase, xp = r.posPost, g = setupCanvas(c1), pad = { l: 52, r: 14, t: 20, b: 40 }, ctx = g.ctx;
+      setT('Cumulative spike positions in two 2.75 s windows', 'Grey: baseline −3 to −0.25 s (' + xb.length + ' spikes). Coloured: post 0 to 2.75 s (' + xp.length + ' spikes). Both rescaled to 0–1. T measures the gap between the two curves.', 'Shift null for T (' + (opts.shiftSet === 'every' ? 'every-offset' : 'skip-near') + ')', 'Upper tail: red bars are at least as far apart as the observed value.');
+      const { X, Y } = frame(g, pad, [0, 1], [0, 1], 'Position in the window (0 = start, 1 = end)', 'Share of spikes', { yf: (t) => Math.round(t * 100) + '%' });
+      ctx.strokeStyle = css('--muted'); ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.moveTo(X(0), Y(0)); ctx.lineTo(X(1), Y(1)); ctx.stroke(); ctx.setLineDash([]);
+      [[xb, '--m8'], [xp, '--m14']].forEach(([v, col]) => { ctx.strokeStyle = css(col); ctx.lineWidth = g.big ? 2.5 : 1.8; ctx.beginPath(); ctx.moveTo(X(0), Y(0)); v.forEach((u, i) => { ctx.lineTo(X(u), Y(i / v.length)); ctx.lineTo(X(u), Y((i + 1) / v.length)); }); ctx.lineTo(X(1), Y(1)); ctx.stroke(); });
+      ctx.lineWidth = 1;
+      drawHist(c2, r.nullDist, r.stat, 'T', false, 0);
+      return;
+    }
+    if (method === 'shape' || method === 'zeta') {
+      const a = opts.shapeWin[0], b = opts.shapeWin[1];
+      const x = method === 'shape' ? r.positions : null;
+      const g = setupCanvas(c1), pad = { l: 52, r: 14, t: 20, b: 40 }, ctx = g.ctx;
+      if (method === 'shape') {
+        setT('Cumulative spike positions, 0–' + b + ' s', 'Black: pooled spikes of all trials (' + r.nSpikes + '). Dashed: flat timing. W² measures the gap between them.', 'Shift null for W² (' + ({ skip: 'skip-near', every: 'every-offset', window: 'window-only' })[opts.shiftSet] + ')', 'Upper tail: red bars are at least as far from flat as the observed value.');
+        const { X, Y } = frame(g, pad, [a, b], [0, 1], 'Time from event onset (s)', 'Share of spikes', { yf: (t) => Math.round(t * 100) + '%' });
+        ctx.strokeStyle = css('--muted'); ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.moveTo(X(a), Y(0)); ctx.lineTo(X(b), Y(1)); ctx.stroke(); ctx.setLineDash([]);
+        ctx.strokeStyle = css('--ink'); ctx.lineWidth = g.big ? 2.5 : 1.8; ctx.beginPath(); ctx.moveTo(X(a), Y(0));
+        x.forEach((u, i) => { ctx.lineTo(X(a + u * (b - a)), Y(i / x.length)); ctx.lineTo(X(a + u * (b - a)), Y((i + 1) / x.length)); }); ctx.lineTo(X(b), Y(1)); ctx.stroke();
+        drawHist(c2, r.nullDist, r.stat, 'W²', false, 0);
+      } else {
+        setT('Deviation from flat timing', 'Cumulative spike share minus a straight line, centred. The dot marks the peak |deviation| = ζ, at ' + fmtN(r.at, 2) + ' s.', 'Null: peaks with jittered onsets (±' + opts.jitterS + ' s)', opts.zetaP === 'gumbel' ? 'p from a Gumbel fit to these peaks.' : 'p = rank of the real peak among these (direct quantile).');
+        const dev = r.curve.dev, xs = SL.METHODS.shape ? null : null; // eslint-disable-line no-unused-vars
+        const pos = []; for (const tr of sim.trials) for (const t of tr) if (t >= a && t < b) pos.push(t); pos.sort((p, q) => p - q);
+        const m = Math.max(0.02, ...dev.map(Math.abs)) * 1.2;
+        const { X, Y } = frame(g, pad, [a, b], [-m, m], 'Time from event onset (s)', 'Deviation (share of spikes)');
+        ctx.strokeStyle = css('--m4'); ctx.lineWidth = g.big ? 2.5 : 1.8; ctx.beginPath(); pos.forEach((t, i) => { if (i === 0) ctx.moveTo(X(t), Y(dev[i])); else ctx.lineTo(X(t), Y(dev[i])); }); ctx.stroke();
+        ctx.fillStyle = css('--ink'); marker(ctx, 'circle', X(r.at), Y(r.curve.peak), g.big ? 6 : 4.5);
+        drawHist(c2, r.nullDist, r.stat, '|ζ| peak', false, 0);
+      }
+      return;
+    }
+    if (method === 't4' || method === 't4pre') {
+      const al = effAlpha();
+      const g = setupCanvas(c1), pad = { l: 56, r: 14, t: 30, b: 40 }, ctx = g.ctx;
+      if (method === 't4') {
+        const R = r.t4, P = R.phases, rs = r.resp;
+        const respCap = rs ? rs.k + ' of ' + rs.n + ' trials respond (' + Math.round(100 * rs.frac) + '%) in the ' + rs.phase + ' phase. Coloured bar = same sign as the phase median and beyond the dashed line: the 90th percentile of the ' + (rs.nullMode === 'pipeline' ? 'pairwise pre-window differences (original null; its window length does not match the phase).' : 'same-shape null: phase-length baseline window before the pre-window, minus the pre rate (fixed).') + (r.called ? '' : ' T4 did not call this cell; this is computed only for called cells.') : 'Not computed: no tested phase with a non-zero median, or too little baseline time for the null.';
+        setT('Per-trial Δ rate in each phase', 'One dot per trial: phase rate − the same trial’s rate from −' + (R.t.pre + R.t.gap).toFixed(3) + ' to −' + R.t.gap.toFixed(3) + ' s. Bar = median. Above each phase: BH-corrected p (' + (P[0] ? P[0].how : '') + ').', 'Trial responsiveness (descriptive, not a test)', respCap);
+        let vals = []; P.forEach((x, k) => { vals = vals.concat(R.t.diffs[k]); });
+        const m = Math.max(1, ...vals.map(Math.abs)) * 1.1;
+        const { X, Y } = frame(g, pad, [-0.5, P.length - 0.5], [-m, m], '', 'Δ rate (spikes/s)', { xt: P.map((_, k) => k), xf: (t) => P[t] ? P[t].lab : '' });
+        ctx.strokeStyle = css('--muted'); ctx.beginPath(); ctx.moveTo(pad.l, Y(0)); ctx.lineTo(g.w - pad.r, Y(0)); ctx.stroke();
+        P.forEach((x, k) => {
+          ctx.fillStyle = css('--m9'); ctx.globalAlpha = 0.5; R.t.diffs[k].forEach((v, i) => { const jx = ((i * 37) % 17) / 17 * 0.5 - 0.25; marker(ctx, 'circle', X(k + jx), Y(v), g.big ? 3 : 2.4); }); ctx.globalAlpha = 1;
+          if (isFinite(x.med)) { ctx.strokeStyle = css('--ink'); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(X(k - 0.32), Y(x.med)); ctx.lineTo(X(k + 0.32), Y(x.med)); ctx.stroke(); ctx.lineWidth = 1; }
+          ctx.fillStyle = x.tested && x.q <= al ? css('--accent-strong') : css('--muted'); ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+          ctx.fillText(x.tested ? 'p = ' + fmtP(x.q) + (x.q <= al ? ' ✓' : '') : 'not tested', X(k), pad.t - 6);
+        });
+        const g2 = setupCanvas(c2), p2 = { l: 56, r: 14, t: 20, b: 40 }, cx = g2.ctx;
+        if (!rs) { cx.fillStyle = css('--muted'); cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText('Not computed for this cell.', g2.w / 2, g2.h / 2); return; }
+        const order = rs.diffs.map((v, i) => [v, i]).sort((a, b) => a[0] - b[0]), mm = (Math.max(rs.thr, ...rs.diffs.map(Math.abs)) * 1.1) || 1;
+        const fr = frame(g2, p2, [0, order.length + 1], [-mm, mm], 'Trials, sorted (' + rs.phase + ' phase)', 'Δ rate (spikes/s)', { xt: [] });
+        cx.strokeStyle = css('--truth'); cx.setLineDash([5, 4]); cx.lineWidth = 1.3; [rs.thr, -rs.thr].forEach((y) => { cx.beginPath(); cx.moveTo(p2.l, fr.Y(y)); cx.lineTo(g2.w - p2.r, fr.Y(y)); cx.stroke(); }); cx.setLineDash([]);
+        const bw = Math.max(1, fr.X(1) - fr.X(0) - 1);
+        order.forEach(([v, i], j) => { cx.fillStyle = rs.resp[i] ? css('--m9') : css('--muted'); cx.globalAlpha = rs.resp[i] ? 0.95 : 0.45; cx.fillRect(fr.X(j + 0.6), fr.Y(Math.max(v, 0)), bw, Math.abs(fr.Y(v) - fr.Y(0)) || 1); }); cx.globalAlpha = 1;
+        return;
+      }
+      const R = r.t4pre, pr = R.t.preR.map((b, i) => [b, R.phaseMean[i]]);
+      setT('Each trial: pre-window vs response rate', 'One line per trial. Pre-window −' + (R.t.pre + R.t.gap).toFixed(3) + ' to −' + R.t.gap.toFixed(3) + ' s. Response rate = ' + (opts.t4preW === 'equal' ? 'mean of the 3 phase rates (original).' : 'rate over the whole 0–' + R.t.D.toFixed(2) + ' s window (fixed).'), 'Differences (pre − response)', 'Sorted per-trial differences; teal = response higher, red = pre higher, grey = zero. p = ' + fmtP(r.p) + ' (' + r.how + ').');
+      const ymax = Math.max(1, ...pr.map((p) => Math.max(p[0], p[1]))) * 1.1;
+      const { X, Y } = frame(g, pad, [-0.3, 1.3], [0, ymax], '', 'Rate (spikes/s)', { xt: [0, 1], xf: (t) => t === 0 ? 'pre-window' : 'response' });
+      ctx.lineWidth = 1; pr.forEach(([b, q], i) => { const jx = ((i * 37) % 17) / 17 * 0.12 - 0.06; ctx.strokeStyle = q > b ? css('--accent') : q < b ? css('--truth') : css('--line'); ctx.globalAlpha = 0.55; ctx.beginPath(); ctx.moveTo(X(0 + jx), Y(b)); ctx.lineTo(X(1 + jx), Y(q)); ctx.stroke(); ctx.globalAlpha = 1; ctx.fillStyle = css('--ink'); marker(ctx, 'circle', X(0 + jx), Y(b), 2.5); marker(ctx, 'circle', X(1 + jx), Y(q), 2.5); });
+      const d = R.d.slice().sort((a, b) => a - b), g2 = setupCanvas(c2), p2 = { l: 56, r: 14, t: 20, b: 40 };
+      const m = Math.max(1, ...d.map(Math.abs)) * 1.1, fr = frame(g2, p2, [0, d.length + 1], [-m, m], 'Trials, sorted', 'pre − response (spikes/s)', { xt: [] });
+      d.forEach((v, i) => { g2.ctx.fillStyle = v < 0 ? css('--accent') : v > 0 ? css('--truth') : css('--muted'); g2.ctx.fillRect(fr.X(i + 0.6), fr.Y(Math.max(v, 0)), Math.max(1, fr.X(1) - fr.X(0) - 1), Math.abs(fr.Y(v) - fr.Y(0)) || 1); });
+      return;
+    }
+    if (method === 't4or_pipe' || method === 't4or_fix') {
+      const al = effAlpha(), P = r.parts, pipe = method === 't4or_pipe';
+      const items = pipe ? [['T4 best phase', P.a.nTested ? P.a.p : null, P.c4], ['T4-pre', P.b.p, P.cPre]] : P.labels.map((l, i) => [l, P.adj[i], P.adj[i] !== null && P.adj[i] <= al]);
+      setT(pipe ? 'The parts of the OR rule' : 'One BH family', pipe ? 'Bar height = −log10 p of each part, each tested at its own α (dashed). Dotted line: the 0.10 borderline, used only when drift is flagged (' + (P.drift ? 'flagged here' : 'not flagged here') + '). Any ✓ = called.' : 'Bar height = −log10 of the BH-corrected p, all ' + items.filter((x) => x[1] !== null).length + ' tests in one family. Any bar above the dashed α line = called.', 'Trial rates across the session', 'Rate in each trial (pre-window to end of response window) in trial order. ' + (pipe ? 'Spearman ρ = ' + (isFinite(P.sp.rho) ? P.sp.rho.toFixed(2) + ', p = ' + fmtP(P.sp.p) : '—') + '; drift is flagged when p < 0.01 and |ρ| > 0.35.' : 'The fixed rule does not use drift.'));
+      const g = setupCanvas(c1), pad = { l: 56, r: 14, t: 24, b: 40 }, ctx = g.ctx;
+      const hs = items.map((x) => x[1] === null ? 0 : -Math.log10(Math.max(x[1], 1e-6))), ym = Math.max(2.2, -Math.log10(al) + 0.5, ...hs) * 1.1;
+      const { X, Y } = frame(g, pad, [-0.5, items.length - 0.5], [0, ym], '', '−log10 p', { xt: items.map((_, k) => k), xf: (t) => items[t] ? items[t][0] : '' });
+      items.forEach((x, k) => { ctx.fillStyle = x[2] ? css(MCOL[method]) : css('--m8'); ctx.globalAlpha = x[2] ? 0.9 : 0.45; ctx.fillRect(X(k - 0.3), Y(hs[k]), X(k + 0.3) - X(k - 0.3), Y(0) - Y(hs[k])); ctx.globalAlpha = 1; ctx.fillStyle = css('--ink'); ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(x[1] === null ? 'not tested' : fmtP(x[1]) + (x[2] ? ' ✓' : ''), X(k), Y(hs[k]) - 3); });
+      const hl = (v, dash, lab) => { ctx.strokeStyle = css('--truth'); ctx.setLineDash(dash); ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(pad.l, Y(v)); ctx.lineTo(g.w - pad.r, Y(v)); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = css('--truth'); ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText(lab, g.w - pad.r - 2, Y(v) - 2); };
+      hl(-Math.log10(al), [5, 4], 'α = ' + fmtP(al)); if (pipe && P.drift) hl(1, [2, 3], '0.10 (borderline)');
+      const tr = pipe ? P.trialRates : sim.trials.map((x) => (SL.countIn(x, -P.a.t.gap - P.a.t.pre, -P.a.t.gap) + SL.countIn(x, 0, P.a.t.D + P.a.t.post)) / (P.a.t.pre + P.a.t.D + P.a.t.post));
+      const g2 = setupCanvas(c2), p2 = { l: 56, r: 14, t: 20, b: 40 }, fr = frame(g2, p2, [0, tr.length + 1], [0, Math.max(1, ...tr) * 1.1], 'Trial (session order)', 'Rate (spikes/s)', { xt: niceTicks(1, tr.length, 5).filter((t) => t >= 1) });
+      g2.ctx.fillStyle = css(MCOL[method]); tr.forEach((v, i) => marker(g2.ctx, 'circle', fr.X(i + 1), fr.Y(v), g2.big ? 3.5 : 2.6));
+      return;
+    }
+    if (method === 'counts') {
+      const needTxt = opts.passPct > 0 ? opts.passPct + '% of trials (never fewer than 2)' : '2 trials';
+      setT('Per-trial p values', 'One dot per trial (log scale). Dashed line = α. The cell is called when at least ' + r.need + ' dots fall below it (' + needTxt + ').', 'Why it is not a detection', 'Chance that at least ' + needTxt + ' pass by luck alone when each trial passes with probability α.');
+      const pt = r.perTrial, g = setupCanvas(c1), pad = { l: 56, r: 14, t: 20, b: 40 }, ctx = g.ctx;
+      const lp = pt.map((p) => Math.log10(Math.max(p, 1e-6))), lo = Math.min(-3, ...lp) - 0.2;
+      const { X, Y } = frame(g, pad, [0, pt.length + 1], [lo, 0.2], 'Trial', 'p (log scale)', { xt: niceTicks(1, pt.length, 5).filter((t) => t >= 1), yf: (t) => t === Math.round(t) ? '1e' + t : '' });
+      ctx.strokeStyle = css('--truth'); ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.moveTo(pad.l, Y(Math.log10(opts.alpha))); ctx.lineTo(g.w - pad.r, Y(Math.log10(opts.alpha))); ctx.stroke(); ctx.setLineDash([]);
+      pt.forEach((p, i) => { ctx.fillStyle = p < opts.alpha ? css('--m7') : css('--muted'); marker(ctx, 'diamond', X(i + 1), Y(Math.log10(Math.max(p, 1e-6))), g.big ? 4.5 : 3.2); });
+      const g2 = setupCanvas(c2), p2 = { l: 52, r: 14, t: 20, b: 40 }, al = opts.alpha;
+      const ns = []; for (let n = 2; n <= 200; n += 2) ns.push(n);
+      const pr = ns.map((n) => binomUpper(n, SL.passNeed(n, opts.passPct), al));
+      const fr = frame(g2, p2, [0, 200], [0, 1], 'Number of trials', 'Chance of a false call', { yf: (t) => Math.round(t * 100) + '%' });
+      g2.ctx.strokeStyle = css('--m7'); g2.ctx.lineWidth = 2; g2.ctx.beginPath(); ns.forEach((n, i) => { if (i === 0) g2.ctx.moveTo(fr.X(n), fr.Y(pr[i])); else g2.ctx.lineTo(fr.X(n), fr.Y(pr[i])); }); g2.ctx.stroke();
+      const nn = sim.trials.length, pn = binomUpper(nn, r.need, al);
+      g2.ctx.fillStyle = css('--ink'); marker(g2.ctx, 'circle', fr.X(nn), fr.Y(pn), 5); g2.ctx.textAlign = 'left'; g2.ctx.textBaseline = 'bottom'; g2.ctx.fillText('this cell: ' + Math.round(pn * 100) + '%', Math.min(fr.X(nn) + 8, g2.w - 120), fr.Y(pn) - 4);
+    }
+  }
+
+  let sortKey = null, sortDir = 1;
+  function renderTable() {
+    if (!results[METHOD_ORDER[0]]) { $('allTable').innerHTML = ''; return; }
+    const rows = METHOD_ORDER.map((k) => ({ k, name: SL.METHODS[k].name, status: k === 'shape' && opts.shiftSet === 'window' ? 'Flagged (window-only)' : SL.METHODS[k].status, p: results[k].p, called: results[k].called, kind: SL.METHODS[k].kind }));
+    if (sortKey) rows.sort((a, b) => { const x = a[sortKey], y = b[sortKey]; const c = (x === null ? 2 : x) < (y === null ? 2 : y) ? -1 : (x === null ? 2 : x) > (y === null ? 2 : y) ? 1 : 0; return c * sortDir; });
+    const th = (k, t) => '<th data-k="' + k + '" scope="col" aria-sort="' + (sortKey === k ? (sortDir > 0 ? 'ascending' : 'descending') : 'none') + '">' + t + (sortKey === k ? (sortDir > 0 ? ' ▲' : ' ▼') : '') + '</th>';
+    let h = '<thead><tr>' + th('name', 'Method') + th('status', 'Status').replace('<th ', '<th class="st" ') + th('p', 'p') + th('called', 'Result') + '</tr></thead><tbody>';
+    for (const r of rows) {
+      const tag = r.kind === 'reliability' ? '<span class="tag rel">' + (r.called ? '✓ called (≥ ' + results[r.k].need + ' trials)' : '– not called') + '</span>' : r.called ? '<span class="tag yes">✓ significant</span>' : '<span class="tag no">– not significant</span>'
+      const tagF = tag + flagHtml(r.k);
+      h += '<tr data-k="' + r.k + '"' + (r.k === method ? ' class="sel"' : '') + ' style="cursor:pointer"><td><span class="dot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(' + MCOL[r.k] + ');margin-right:8px;vertical-align:middle"></span>' + r.name + '</td><td class="st">' + r.status + '</td><td class="num">' + fmtP(r.p) + '</td><td>' + tagF + '</td></tr>';
+    }
+    $('allTable').innerHTML = h + '</tbody>';
+    $('allTable').querySelectorAll('th').forEach((el) => { el.tabIndex = 0; const go = () => { const k = el.dataset.k; if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = 1; } renderTable(); }; el.addEventListener('click', go); el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }); });
+    $('allTable').querySelectorAll('tbody tr').forEach((el) => { el.tabIndex = 0; const go = () => { method = el.dataset.k; store.set('method', method); renderChips(); renderTestControls(); renderTests(); }; el.addEventListener('click', go); el.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); }); });
+  }
+
+  // ---------------- window-length sweep (section 2, bottom) ----------------
+  const SW_FIXED = [0.25, 0.5, 1, 2, 3];
+  let swWorker = null, swRes = null;
+  function derivedParts() { const lat = cell.latencyMs / 1000, jit = 2 * (cell.jitterMs || 0) / 1000, len = (cell.shape === 'peak' ? 3 : 1) * cell.durationS; return { lat, jit, len }; }
+  function derivedEnd() { const d = derivedParts(), e = d.lat + d.jit + d.len; return Math.min(3, Math.max(0.25, Math.ceil(e * 20 - 1e-9) / 20)); }
+  function swInvalidate() { if (swWorker) { swWorker.terminate(); swWorker = null; $('swRun').disabled = false; } if (swRes) { swRes = null; $('swStatus').textContent = 'Cell or test settings changed: run the sweep again.'; } if (!$('sec-tests').hidden) drawSweep(); }
+  function runSweep() {
+    if (swWorker) swWorker.terminate();
+    const dv = derivedEnd(), wins = SW_FIXED.map((w) => ({ w })).concat([{ w: dv, derived: true }]);
+    const o = Object.assign({}, opts, { alpha: effAlpha(), W: { base: opts.W.base.slice(), resp: opts.W.resp.slice() }, shapeWin: opts.shapeWin.slice() });
+    try { swWorker = new Worker(URL.createObjectURL(new Blob([workerSrc()], { type: 'text/javascript' }))); } catch (e) { $('swStatus').textContent = 'This browser blocked the background worker, so the sweep cannot run here.'; return; }
+    $('swRun').disabled = true; $('swStatus').textContent = 'Running… 0 of ' + wins.length + ' windows.';
+    const t0 = performance.now();
+    swWorker.onmessage = (ev) => {
+      const m = ev.data;
+      if (m.type === 'progress') $('swStatus').textContent = 'Running… ' + m.done + ' of ' + m.N + ' windows.';
+      if (m.type === 'sweepDone') { swRes = { rows: m.rows, dv }; swWorker.terminate(); swWorker = null; $('swRun').disabled = false; $('swStatus').textContent = 'Done in ' + ((performance.now() - t0) / 1000).toFixed(1) + ' s. Derived window for this cell: 0–' + dv.toFixed(2) + ' s (latency ' + cell.latencyMs + ' ms + 2 × jitter SD ' + (2 * (cell.jitterMs || 0)) + ' ms + response length ' + derivedParts().len.toFixed(2) + ' s' + (cell.shape === 'peak' ? ', 3 × duration for the peak tail' : '') + '; rounded up to 0.05 s, kept between 0.25 and 3 s).'; drawSweep(); }
+    };
+    swWorker.onerror = () => { swWorker = null; $('swRun').disabled = false; $('swStatus').textContent = 'The sweep stopped with an error.'; };
+    swWorker.postMessage({ type: 'sweep', p: cell, o, alphaRaw: opts.alpha, wins, methods: METHOD_ORDER });
+  }
+  function drawSweep() {
+    const cv = $('swChart'), g = setupCanvas(cv), ctx = g.ctx, pad = { l: 56, r: 18, t: 24, b: 40 };
+    if (!swRes) { ctx.fillStyle = css('--muted'); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('Press “Run window sweep” to test this cell at each window length.', g.w / 2, g.h / 2); $('swTable').innerHTML = ''; return; }
+    const det = METHOD_ORDER.filter((k) => SL.METHODS[k].kind !== 'reliability');
+    const fixed = swRes.rows.filter((r) => !r.derived), drv = swRes.rows.find((r) => r.derived);
+    const lp = (p) => Math.log10(Math.max(p, 1e-6));
+    let lo = -3; for (const r of swRes.rows) for (const k of det) if (r.res[k].p !== null) lo = Math.min(lo, lp(r.res[k].p)); lo -= 0.2;
+    const { X, Y } = frame(g, pad, [0, 3.1], [lo, 0.15], 'Response window ends at (s after onset)', 'p (log scale)', { xt: [0, 0.5, 1, 1.5, 2, 2.5, 3], yf: (t) => t === Math.round(t) ? '1e' + t : '' });
+    const al = effAlpha();
+    ctx.strokeStyle = css('--truth'); ctx.setLineDash([5, 4]); ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(pad.l, Y(Math.log10(al))); ctx.lineTo(g.w - pad.r, Y(Math.log10(al))); ctx.stroke();
+    ctx.fillStyle = css('--truth'); ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillText('α = ' + fmtP(al), pad.l + 4, Y(Math.log10(al)) - 2);
+    ctx.strokeStyle = css('--ink'); ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(X(swRes.dv), pad.t); ctx.lineTo(X(swRes.dv), g.h - pad.b); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = css('--ink'); ctx.textAlign = X(swRes.dv) > g.w * 0.75 ? 'right' : 'left'; ctx.textBaseline = 'top'; ctx.fillText('derived: ' + swRes.dv.toFixed(2) + ' s', X(swRes.dv) + (ctx.textAlign === 'left' ? 4 : -4), pad.t - 18);
+    if (Math.abs(X(2) - X(swRes.dv)) > 90) { ctx.fillStyle = css('--muted'); ctx.textAlign = 'center'; ctx.fillText('default', X(2), pad.t - 18); }
+    for (const k of det) {
+      ctx.strokeStyle = css(MCOL[k]); ctx.fillStyle = css(MCOL[k]); ctx.lineWidth = g.big ? 2.5 : 1.8; ctx.beginPath();
+      fixed.forEach((r, i) => { const p = r.res[k].p; if (p === null) return; if (i === 0) ctx.moveTo(X(r.w), Y(lp(p))); else ctx.lineTo(X(r.w), Y(lp(p))); }); ctx.stroke();
+      fixed.forEach((r) => { const p = r.res[k].p; if (p !== null) marker(ctx, MMARK[k], X(r.w), Y(lp(p)), g.big ? 4.5 : 3.4); });
+      const pd = drv.res[k].p; if (pd !== null) { ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(X(drv.w), Y(lp(pd)), g.big ? 8 : 6.5, 0, 2 * Math.PI); ctx.stroke(); }
+    }
+    const cellTxt = (k, r) => { const x = r.res[k]; if (SL.METHODS[k].kind === 'reliability') return x.stat + '/' + sim.trials.length + (x.called ? ' ✓' : ''); return fmtP(x.p) + (x.called ? ' ✓' : ''); };
+    let h = '<thead><tr><th scope="col">Method</th>' + fixed.map((r) => '<th scope="col">' + r.w + ' s' + (r.w === 2 ? ' (default)' : '') + '</th>').join('') + '<th scope="col">Derived ' + drv.w.toFixed(2) + ' s</th>' + '</tr></thead><tbody>';
+    for (const k of METHOD_ORDER) h += '<tr><td><span style="display:inline-flex;align-items:baseline;gap:8px"><span class="dot" style="display:inline-block;width:9px;height:9px;border-radius:50%;flex:none;background:var(' + MCOL[k] + ')"></span><span>' + SL.METHODS[k].name + (k === 'counts' ? ' <span style="color:var(--muted)">(trials passing; need ' + drv.res[k].need + ')</span>' : '') + '</span></span></td>' + fixed.map((r) => '<td class="num">' + cellTxt(k, r) + '</td>').join('') + '<td class="num"><b>' + cellTxt(k, drv) + '</b></td>' + '</tr>';
+    $('swTable').innerHTML = h + '</tbody>';
+  }
+
+  // ---------------- section 3 (worker) ----------------
+  const FA_TOGGLES = [
+    { k: 'bursty', label: 'Bursty spikes (gamma k = 0.3)', p: { train: 'gamma', gammaK: 0.3 } },
+    { k: 'gain', label: 'Trial-to-trial gain (CV 0.6)', p: { trialGainCV: 0.6 } },
+    { k: 'slow', label: 'Slow rate fluctuation (50% SD)', p: { slowPct: 50 } },
+    { k: 'win', label: 'Rate changes every second (gamma, CV 0.8: negative-binomial counts)', p: { winCV: 0.8, rateLaw: 'gamma' } },
+    { k: 'few', label: 'Few trials (8)', p: { nTrials: 8 } },
+    { k: 'drift', label: 'Drift across the session (+40%)', p: { driftPct: 40 } }
+  ];
+  let faOn = store.get('faOn', {}), worker = null, faRes = store.get('faRes', null);
+  function renderFaToggles() {
+    $('faToggles').innerHTML = FA_TOGGLES.map((t) => '<label><input type="checkbox" id="fa_' + t.k + '"' + (faOn[t.k] ? ' checked' : '') + '> ' + t.label + '</label>').join('');
+    FA_TOGGLES.forEach((t) => $('fa_' + t.k).addEventListener('change', (e) => { faOn[t.k] = e.target.checked; store.set('faOn', faOn); }));
+  }
+  function workerSrc() { return document.getElementById('engine-src').textContent + '\n' + document.getElementById('worker-src').textContent; }
+  function runFA() {
+    if (worker) worker.terminate();
+    let p = Object.assign({}, cell, { responds: false });
+    for (const t of FA_TOGGLES) if (faOn[t.k]) p = Object.assign(p, t.p);
+    const N = +$('faN').value, nShuf = +$('faShuf').value;
+    const o = Object.assign({}, opts, { alpha: opts.alpha, nShuf, W: { base: opts.W.base.slice(), resp: opts.W.resp.slice() }, shapeWin: opts.shapeWin.slice() });
+    try { worker = new Worker(URL.createObjectURL(new Blob([workerSrc()], { type: 'text/javascript' }))); } catch (e) { $('faStatus').textContent = 'This browser blocked the background worker, so the check cannot run here.'; return; }
+    $('faRun').disabled = true; $('faStop').hidden = false; $('faBar').style.width = '0%';
+    const t0 = performance.now();
+    worker.onmessage = (ev) => {
+      const m = ev.data;
+      if (m.type === 'progress') { $('faBar').style.width = (100 * m.done / N).toFixed(1) + '%'; $('faStatus').textContent = 'Running… ' + m.done + ' of ' + N + ' cells.'; faRes = { counts: m.counts, done: m.done, N, desc: describeFA(p) }; drawFA(); }
+      if (m.type === 'done') { $('faBar').style.width = '100%'; faRes = { counts: m.counts, done: m.done, N, desc: describeFA(p) }; store.set('faRes', faRes); drawFA(); finishFA('Done: ' + N + ' null cells in ' + ((performance.now() - t0) / 1000).toFixed(1) + ' s. ' + faRes.desc); }
+    };
+    worker.onerror = () => finishFA('The check stopped with an error.');
+    worker.postMessage({ p, o, N, methods: METHOD_ORDER });
+  }
+  function describeFA(p) { return 'Null cells: ' + p.baseRate.toFixed(1) + ' spikes/s, ' + (({ poisson: 'exponential intervals', gamma: 'gamma k = ' + p.gammaK, refractory: 'exponential + refractory' })[p.train] || (LAWNAME[p.train] + ' intervals, CV ' + p.isiCV)) + ', ' + p.nTrials + ' trials' + (p.trialGainCV ? ', gain CV ' + p.trialGainCV : '') + (p.slowPct ? ', slow fluctuation ' + p.slowPct + '%' : '') + (p.winCV ? ', ' + LAWNAME[p.rateLaw] + ' rate change per second CV ' + p.winCV : '') + (p.driftPct ? ', drift ' + p.driftPct + '%' : '') + '; α = ' + opts.alpha + (opts.passPct ? '; per-trial tests need ' + opts.passPct + '% of trials' : '') + '.'; }
+  function finishFA(msg) { if (worker) worker.terminate(); worker = null; $('faRun').disabled = false; $('faStop').hidden = true; $('faStatus').textContent = msg; }
+  function clopper(k, n) {
+    if (n === 0) return [0, 1];
+    const betaInv = (pp, a, b) => { let lo = 0, hi = 1; for (let i = 0; i < 60; i++) { const mid = (lo + hi) / 2; if (ibeta(mid, a, b) < pp) lo = mid; else hi = mid; } return (lo + hi) / 2; };
+    return [k === 0 ? 0 : betaInv(0.025, k, n - k + 1), k === n ? 1 : betaInv(0.975, k + 1, n - k)];
+  }
+  function lg(x) { const c = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5]; let y = x, t = x + 5.5; t -= (x + 0.5) * Math.log(t); let s = 1.000000000190015; for (const ci of c) s += ci / ++y; return -t + Math.log(2.5066282746310005 * s / x); }
+  function ibeta(x, a, b) {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    const bt = Math.exp(lg(a + b) - lg(a) - lg(b) + a * Math.log(x) + b * Math.log(1 - x));
+    const cf = (x, a, b) => { let qab = a + b, qap = a + 1, qam = a - 1, c = 1, d = 1 - qab * x / qap; d = 1 / (Math.abs(d) < 1e-30 ? 1e-30 : d); let h = d; for (let m = 1; m <= 200; m++) { const m2 = 2 * m; let aa = m * (b - m) * x / ((qam + m2) * (a + m2)); d = 1 + aa * d; d = 1 / (Math.abs(d) < 1e-30 ? 1e-30 : d); c = 1 + aa / c; c = Math.abs(c) < 1e-30 ? 1e-30 : c; h *= d * c; aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2)); d = 1 + aa * d; d = 1 / (Math.abs(d) < 1e-30 ? 1e-30 : d); c = 1 + aa / c; c = Math.abs(c) < 1e-30 ? 1e-30 : c; const del = d * c; h *= del; if (Math.abs(del - 1) < 3e-12) break; } return h; };
+    return x < (a + 1) / (a + b + 2) ? bt * cf(x, a, b) / a : 1 - bt * cf(1 - x, b, a) / b;
+  }
+  function drawFA() {
+    const cv = $('faChart'); cv.setAttribute('height', faRes ? String(70 + 30 * METHOD_ORDER.length) : '120'); const g = setupCanvas(cv), ctx = g.ctx, pad = { l: 250, r: 70, t: 24, b: 40 };
+    if (g.w < 560) pad.l = 150;
+    if (!faRes) { ctx.fillStyle = css('--muted'); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('No results yet. Press “Run false-alarm check” above.', g.w / 2, g.h / 2); return; }
+    const n = faRes.done, rows = METHOD_ORDER.map((k) => { const c = faRes.counts[k] || 0; const ci = clopper(c, n); return { k, v: n ? c / n : 0, ci }; });
+    const xmax = Math.min(1, Math.max(0.15, ...rows.map((r) => r.ci[1])) * 1.1);
+    const rowH = (g.h - pad.t - pad.b) / rows.length;
+    const X = (v) => pad.l + v / xmax * (g.w - pad.l - pad.r);
+    ctx.strokeStyle = css('--line'); ctx.fillStyle = css('--muted'); ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    for (const t of niceTicks(0, xmax, 5)) { ctx.beginPath(); ctx.moveTo(X(t), pad.t); ctx.lineTo(X(t), g.h - pad.b); ctx.stroke(); ctx.fillText(Math.round(t * 100) + '%', X(t), g.h - pad.b + 6); }
+    ctx.fillStyle = css('--text'); ctx.textBaseline = 'bottom'; ctx.fillText('Null cells called significant (n = ' + n + ')', pad.l + (g.w - pad.l - pad.r) / 2, g.h - 2);
+    rows.forEach((r, i) => {
+      const yc = pad.t + (i + 0.5) * rowH, bh = Math.min(22, rowH * 0.55);
+      ctx.fillStyle = css(MCOL[r.k]); ctx.globalAlpha = 0.85; ctx.fillRect(X(0), yc - bh / 2, X(r.v) - X(0), bh); ctx.globalAlpha = 1;
+      ctx.strokeStyle = css('--ink'); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(X(r.ci[0]), yc); ctx.lineTo(X(r.ci[1]), yc); ctx.moveTo(X(r.ci[0]), yc - 5); ctx.lineTo(X(r.ci[0]), yc + 5); ctx.moveTo(X(r.ci[1]), yc - 5); ctx.lineTo(X(r.ci[1]), yc + 5); ctx.stroke();
+      ctx.fillStyle = css(MCOL[r.k]); marker(ctx, MMARK[r.k], pad.l - 12, yc, 5);
+      ctx.fillStyle = css('--ink'); ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      let nm = SL.METHODS[r.k].name; if (r.k === 'shape' || r.k === 'shape2') nm += ' (' + ({ skip: 'skip-near', every: 'every-offset', window: 'window-only' })[opts.shiftSet] + ')'; if (r.k === 'isi' && opts.isiStart === 'fixed') nm += ' (old bug)';
+      if (r.k === 'mad') nm = 'Mean over trials, window − event'; if (r.k === 't4' && opts.t4P === 'scipy') nm += ' (scipy p)'; if (r.k === 't4pre' && opts.t4P === 'scipy') nm += ' (scipy p)';
+      while (ctx.measureText(nm).width > pad.l - 26 && nm.length > 8) nm = nm.slice(0, -2) + '…';
+      ctx.fillText(nm, pad.l - 24, yc);
+      ctx.textAlign = 'left'; ctx.fillStyle = css('--text'); ctx.fillText((100 * r.v).toFixed(1) + '%', Math.min(X(r.ci[1]) + 6, g.w - pad.r + 4), yc);
+    });
+    ctx.strokeStyle = css('--truth'); ctx.setLineDash([6, 4]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(X(0.05), pad.t); ctx.lineTo(X(0.05), g.h - pad.b); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = css('--truth'); ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.textBaseline = 'bottom'; ctx.fillText('5%', X(0.05) + 4, pad.t - 2);
+  }
+
+  // ---------------- wiring ----------------
+  let tCell = null, tTests = null;
+  function onCellChange(k) {
+    store.set('cell', cell); refreshShows();
+    clearTimeout(tCell); tCell = setTimeout(() => { sim = SL.simulate(cell); drawCell(); scheduleTests(); }, 120);
+  }
+  function scheduleTests() { clearTimeout(tTests); swInvalidate(); tTests = setTimeout(() => { runAll(); if (!$('sec-tests').hidden) renderTests(); else renderTable(); drawRaster(); drawPSTH(); cellKpis(); drawLaws(); }, 60); }
+  function drawCell() { drawRaster(); drawPSTH(); cellKpis(); drawLaws(); }
+  function redrawAll() { if (!sim) return; drawCell(); if (!$('sec-tests').hidden) renderTests(); if (!$('sec-fa').hidden) drawFA(); }
+
+  const TABS = [['tab-cell', 'sec-cell', 'cell'], ['tab-tests', 'sec-tests', 'tests'], ['tab-fa', 'sec-fa', 'false-alarms']];
+  function showTab(id) {
+    for (const [t, s, h] of TABS) { const on = t === id; $(t).setAttribute('aria-selected', String(on)); $(s).hidden = !on; if (on) { store.set('tab', t); try { history.replaceState(null, '', '#' + h); } catch (e) { /* ignore */ } } }
+    if (id === 'tab-tests') renderTests(); if (id === 'tab-fa') drawFA(); if (id === 'tab-cell') drawCell();
+  }
+  TABS.forEach(([t]) => $(t).addEventListener('click', () => showTab(t)));
+  $('tab-cell').parentElement.addEventListener('keydown', (e) => {
+    const i = TABS.findIndex(([t]) => $(t).getAttribute('aria-selected') === 'true');
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { const j = (i + (e.key === 'ArrowRight' ? 1 : TABS.length - 1)) % TABS.length; showTab(TABS[j][0]); $(TABS[j][0]).focus(); }
+  });
+  $('psthBin').addEventListener('input', drawPSTH);
+  $('seedBtn').addEventListener('click', () => { cell.seed = (Math.random() * 1e9) >>> 0; opts.seed = (Math.random() * 1e9) >>> 0; onCellChange('seed'); });
+  $('bigBtn').addEventListener('click', () => { const on = !document.body.classList.contains('big'); document.body.classList.toggle('big', on); $('bigBtn').setAttribute('aria-pressed', String(on)); store.set('big', on); redrawAll(); });
+  $('faN').addEventListener('input', () => { $('faNOut').textContent = $('faN').value; });
+  $('faShuf').addEventListener('input', () => { $('faShufOut').textContent = $('faShuf').value; });
+  $('faRun').addEventListener('click', runFA);
+  $('swRun').addEventListener('click', runSweep);
+  $('faStop').addEventListener('click', () => finishFA('Stopped. The chart shows the cells finished so far.'));
+  let rt = null; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(redrawAll, 150); });
+  try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redrawAll); } catch (e) { /* old browser */ }
+  new MutationObserver(redrawAll).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+
+  // boot
+  if (store.get('big', false)) { document.body.classList.add('big'); $('bigBtn').setAttribute('aria-pressed', 'true'); }
+  $('faNOut').textContent = $('faN').value; $('faShufOut').textContent = $('faShuf').value;
+  const hashTab = { '#tests': 'tab-tests', '#false-alarms': 'tab-fa', '#cell': 'tab-cell' }[location.hash];
+  renderPresets(); renderCellControls(); renderChips(); renderTestControls(); renderFaToggles();
+  sim = SL.simulate(cell); runAll();
+  showTab(hashTab || store.get('tab', 'tab-cell'));
+  renderTable();
+})();
+</script>
+
+</body></html>
